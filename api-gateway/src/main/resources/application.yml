@@ -1,0 +1,38 @@
+
+
+spring:
+  application:
+    name: "api-gateway"
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    gateway:
+      access: unrestricted
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: "api-gateway"
+    description: "Kasyus Gateway Server Application"
+    version: "1.0.0"
+
+logging:
+  level:
+    com:
+      kasyus:
+        api-gateway: DEBUG
+server:
+  port: 8087
