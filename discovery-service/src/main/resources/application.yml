@@ -1,0 +1,39 @@
+
+spring:
+  application:
+    name: "discovery-service"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    gateway:
+      access: unrestricted
+  info:
+    env:
+      enabled: true
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    fetchRegistry: false
+    registerWithEureka: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+info:
+  app:
+    name: "discovery-service"
+    description: "Kasyus Discovery Service Application"
+    version: "1.0.0"
+
+logging:
+  level:
+    com:
+      kasyus:
+        discovery-service: DEBUG
+server:
+  port: 8070

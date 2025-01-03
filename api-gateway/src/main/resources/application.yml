@@ -34,5 +34,13 @@ logging:
     com:
       kasyus:
         api-gateway: DEBUG
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8070}/eureka/
 server:
   port: 8087
