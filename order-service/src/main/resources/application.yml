@@ -1,12 +1,16 @@
 spring:
   application:
-    name: "api-gateway"
-  cloud:
-    gateway:
-      discovery:
-        locator:
-          enabled: false
-          lowerCaseServiceId: true
+    name: "order-service"
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/kasyus}
+    username: ${SPRING_DATASOURCE_USERNAME:kasyus}
+    password: ${SPRING_DATASOURCE_PASSWORD:kasyus123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 
 management:
@@ -23,15 +27,15 @@ management:
 
 info:
   app:
-    name: "api-gateway"
-    description: "Kasyus Gateway Server Application"
+    name: "order-service"
+    description: "Kasyus Order Service Application"
     version: "1.0.0"
 
 logging:
   level:
     com:
       kasyus:
-        api-gateway: DEBUG
+        order-service: DEBUG
 eureka:
   instance:
     prefer-ip-address: true
@@ -41,4 +45,4 @@ eureka:
     serviceUrl:
       defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8070}/eureka/
 server:
-  port: 8087
+  port: 8084
