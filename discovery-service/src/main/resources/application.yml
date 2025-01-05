@@ -8,9 +8,6 @@ management:
     web:
       exposure:
         include: "*"
-  endpoint:
-    gateway:
-      access: unrestricted
   info:
     env:
       enabled: true

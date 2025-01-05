@@ -1,6 +1,6 @@
 spring:
   application:
-    name: "product-service"
+    name: "products"
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/kasyus}
     username: ${SPRING_DATASOURCE_USERNAME:kasyus}
@@ -10,6 +10,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
 
 
 management:
@@ -17,16 +20,13 @@ management:
     web:
       exposure:
         include: "*"
-  endpoint:
-    gateway:
-      access: unrestricted
   info:
     env:
       enabled: true
 
 info:
   app:
-    name: "product-service"
+    name: "products"
     description: "Kasyus Product Service Application"
     version: "1.0.0"
 
