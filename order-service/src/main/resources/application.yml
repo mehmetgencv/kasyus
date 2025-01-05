@@ -37,7 +37,7 @@ logging:
   level:
     com:
       kasyus:
-        order-service: DEBUG
+        orders: DEBUG
 eureka:
   instance:
     prefer-ip-address: true
