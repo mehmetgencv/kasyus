@@ -2,6 +2,8 @@ package com.kasyus.product_service.controller;
 
 import com.kasyus.product_service.model.Product;
 import com.kasyus.product_service.service.ProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +16,14 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+
+    public static final String CORRELATION_ID_KEY = "kasyus-correlation-id";
 
     public ProductController(ProductService productService) {
         this.productService = productService;
     }
+
 
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
@@ -65,7 +71,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<Product>> getAllProducts(@RequestHeader(CORRELATION_ID_KEY) String correlationId) {
+        logger.debug(CORRELATION_ID_KEY + " found: {}", correlationId);
         List<Product> products = productService.getAllProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
