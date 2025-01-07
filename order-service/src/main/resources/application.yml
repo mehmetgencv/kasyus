@@ -20,9 +20,18 @@ management:
     web:
       exposure:
         include: "*"
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
   endpoint:
     gateway:
       access: unrestricted
+    health:
+      probes:
+        enabled: true
+
   info:
     env:
       enabled: true
