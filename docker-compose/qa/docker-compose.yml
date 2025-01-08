@@ -1,0 +1,172 @@
+version: '3.8'
+
+services:
+  discovery-service:
+    build:
+      context: ../../discovery-service
+      dockerfile: Dockerfile
+    container_name: discovery-service-qa
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=qa
+    networks:
+      - kasyus-network-qa
+
+  api-gateway:
+    build:
+      context: ../../api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway-qa
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=qa
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - kasyus-network-qa
+    depends_on:
+      - discovery-service
+
+  product-service:
+    build:
+      context: ../../product-service
+      dockerfile: Dockerfile
+    container_name: product-service-qa
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=qa
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_products_qa
+      - SPRING_DATASOURCE_USERNAME=kasyus
+      - SPRING_DATASOURCE_PASSWORD=kasyus123
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
+      - SPRING_REDIS_HOST=redis
+      - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
+    networks:
+      - kasyus-network-qa
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+      - redis
+      - elasticsearch
+
+  order-service:
+    build:
+      context: ../../order-service
+      dockerfile: Dockerfile
+    container_name: order-service-qa
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=qa
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_orders_qa
+      - SPRING_DATASOURCE_USERNAME=kasyus
+      - SPRING_DATASOURCE_PASSWORD=kasyus123
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
+      - SPRING_REDIS_HOST=redis
+      - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
+    networks:
+      - kasyus-network-qa
+    depends_on:
+      - discovery-service
+      - postgres
+      - kafka
+      - redis
+      - elasticsearch
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper-qa
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kasyus-network-qa
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-qa
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kasyus-network-qa
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-qa
+    environment:
+      POSTGRES_USER: kasyus
+      POSTGRES_PASSWORD: kasyus123
+      POSTGRES_MULTIPLE_DATABASES: kasyus_products_qa,kasyus_orders_qa
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - postgres_data_qa:/var/lib/postgresql/data
+    networks:
+      - kasyus-network-qa
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kasyus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis-qa
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_qa:/data
+    networks:
+      - kasyus-network-qa
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.1
+    container_name: elasticsearch-qa
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data_qa:/usr/share/elasticsearch/data
+    networks:
+      - kasyus-network-qa
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.7.1
+    container_name: kibana-qa
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - kasyus-network-qa
+
+networks:
+  kasyus-network-qa:
+    driver: bridge
+
+volumes:
+  postgres_data_qa:
+  elasticsearch_data_qa:
+  redis_data_qa: 
