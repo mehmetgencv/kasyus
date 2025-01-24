@@ -26,6 +26,13 @@ public class RequestTraceFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
+        String path = exchange.getRequest().getURI().getPath();
+
+        if (path.contains("/swagger-ui/") || path.contains("/v3/api-docs")) {
+            return chain.filter(exchange);
+        }
+
         HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
         if (isCorrelationIdPresent(requestHeaders)) {
             logger.debug(CORRELATION_ID_KEY + " found in RequestTraceFilter : {}",

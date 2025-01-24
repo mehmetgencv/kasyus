@@ -1,4 +1,3 @@
-
 spring:
   application:
     name: "discovery-service"
@@ -28,7 +27,8 @@ eureka:
     fetchRegistry: false
     registerWithEureka: false
     serviceUrl:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone:  http://${eureka.instance.hostname}:${server.port}/eureka/
+
 
 info:
   app:
@@ -42,4 +42,4 @@ logging:
       kasyus:
         discovery-service: DEBUG
 server:
-  port: 8070
+  port: 8761

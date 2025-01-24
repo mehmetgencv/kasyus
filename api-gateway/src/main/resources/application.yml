@@ -8,6 +8,33 @@ spring:
           enabled: false
           lowerCaseServiceId: true
 
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders: "*"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs/product-service
+        name: Product Service API
+      - url: /v3/api-docs/order-service
+        name: Order Service API
 
 management:
   endpoints:
@@ -16,7 +43,9 @@ management:
         include: "*"
   endpoint:
     gateway:
-      access: unrestricted
+      enabled: true
+    health:
+      show-details: always
   info:
     env:
       enabled: true
@@ -39,6 +68,6 @@ eureka:
     fetchRegistry: true
     registerWithEureka: true
     serviceUrl:
-      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8070}/eureka/
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
 server:
   port: 8072

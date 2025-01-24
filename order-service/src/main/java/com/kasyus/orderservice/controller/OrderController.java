@@ -2,6 +2,8 @@ package com.kasyus.orderservice.controller;
 
 import com.kasyus.orderservice.model.Order;
 import com.kasyus.orderservice.service.OrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,9 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
+    public static final String CORRELATION_ID_KEY = "kasyus-correlation-id";
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }

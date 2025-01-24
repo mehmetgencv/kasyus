@@ -1,9 +1,9 @@
 spring:
   application:
-    name: "orders"
+    name: "order-service"
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/kasyus}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kasyus_orders}
     username: ${SPRING_DATASOURCE_USERNAME:kasyus}
     password: ${SPRING_DATASOURCE_PASSWORD:kasyus123}
     driver-class-name: org.postgresql.Driver
@@ -14,6 +14,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+
 
 management:
   endpoints:
@@ -31,14 +32,13 @@ management:
     health:
       probes:
         enabled: true
-
   info:
     env:
       enabled: true
 
 info:
   app:
-    name: "orders"
+    name: "order-service"
     description: "Kasyus Order Service Application"
     version: "1.0.0"
 
@@ -46,7 +46,7 @@ logging:
   level:
     com:
       kasyus:
-        orders: DEBUG
+        order-service: DEBUG
 eureka:
   instance:
     prefer-ip-address: true
@@ -54,6 +54,6 @@ eureka:
     fetchRegistry: true
     registerWithEureka: true
     serviceUrl:
-      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8070}/eureka/
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
 server:
-  port: 8084
+  port: 8082
