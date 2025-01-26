@@ -33,7 +33,11 @@ public class ApiGatewayApplication {
 						.path("/order-service/api/v1/orders/**")
 						.filters(f -> f
 								.stripPrefix(1)
-								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
+								.circuitBreaker(config -> config.setName("orderCircuitBreaker")
+										.setFallbackUri("forward:/contactSupport"))
+
+						)
 						.uri("lb://order-service"))
 
 				// Product Service Routes
