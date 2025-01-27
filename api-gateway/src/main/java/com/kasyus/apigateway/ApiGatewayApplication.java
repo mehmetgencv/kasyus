@@ -3,11 +3,14 @@ package com.kasyus.apigateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
@@ -45,7 +48,9 @@ public class ApiGatewayApplication {
 						.path("/product-service/api/v1/products/**")
 						.filters(f -> f
 								.stripPrefix(1)
-								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
+								.requestRateLimiter(config -> config.setRateLimiter(redisRateLimiter())
+										.setKeyResolver(userKeyResolver())))
 						.uri("lb://product-service"))
 
 				// Swagger UI route for Product Service
@@ -70,5 +75,19 @@ public class ApiGatewayApplication {
 						.uri("lb://api-gateway"))
 
 				.build();
+	}
+
+	@Bean
+	public RedisRateLimiter redisRateLimiter() {
+		return new RedisRateLimiter(
+				1,
+				1,
+				1);
+	}
+
+	@Bean
+	KeyResolver userKeyResolver() {
+		return exchange -> Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("user"))
+				.defaultIfEmpty("anonymous");
 	}
 }
