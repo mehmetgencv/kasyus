@@ -9,7 +9,7 @@ spring:
           lowerCaseServiceId: true
       httpclient:
         connect-timeout: 1000
-        response-timeout: 2s
+        response-timeout: 10s
 
       globalcors:
         add-to-simple-url-handler-mapping: true
@@ -58,6 +58,10 @@ management:
   info:
     env:
       enabled: true
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 info:
   app:

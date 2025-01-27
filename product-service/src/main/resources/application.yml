@@ -36,6 +36,11 @@ management:
     env:
       enabled: true
 
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
 info:
   app:
     name: "product-service"
