@@ -27,7 +27,9 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+        logger.debug("createProduct method start");
         Product createdProduct = productService.createProduct(product);
+        logger.debug("createProduct method end");
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
@@ -73,7 +75,9 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts(@RequestHeader(CORRELATION_ID_KEY) String correlationId) {
         logger.debug(CORRELATION_ID_KEY + " found: {}", correlationId);
+        logger.debug("getAllProducts method start");
         List<Product> products = productService.getAllProducts();
+        logger.debug("getAllProducts method end");
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 

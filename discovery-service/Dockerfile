@@ -18,6 +18,8 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy the application JAR file from the build stage
+COPY target/lib/*.jar /libs/
+
 COPY target/*.jar app.jar
 
 # Expose the port the app runs on

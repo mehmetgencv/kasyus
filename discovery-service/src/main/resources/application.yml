@@ -43,6 +43,6 @@ logging:
   level:
     com:
       kasyus:
-        discovery-service: DEBUG
+        discoveryservice: DEBUG
 server:
   port: 8761

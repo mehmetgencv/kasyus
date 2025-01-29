@@ -56,7 +56,9 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
+        logger.debug("getAllOrders method start");
         List<Order> orders = orderService.getAllOrders();
+        logger.debug("getAllOrders method end");
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 

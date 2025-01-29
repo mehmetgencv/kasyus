@@ -73,7 +73,7 @@ logging:
   level:
     com:
       kasyus:
-        api-gateway: DEBUG
+        apigateway: DEBUG
 eureka:
   instance:
     prefer-ip-address: true

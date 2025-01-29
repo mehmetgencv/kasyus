@@ -49,7 +49,7 @@ logging:
   level:
     com:
       kasyus:
-        order-service: DEBUG
+        orderservice: DEBUG
 eureka:
   instance:
     prefer-ip-address: true

@@ -36,6 +36,7 @@ management:
     env:
       enabled: true
 
+
   metrics:
     tags:
       application: ${spring.application.name}
@@ -51,7 +52,10 @@ logging:
   level:
     com:
       kasyus:
-        product-service: DEBUG
+        product_service: DEBUG
+
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 eureka:
   instance:
     prefer-ip-address: true

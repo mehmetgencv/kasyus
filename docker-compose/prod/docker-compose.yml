@@ -1,5 +1,3 @@
-version: '3.8'
-
 name: kasyus-prod
 
 services:
@@ -11,18 +9,24 @@ services:
     ports:
       - "8761:8761"
     environment:
-      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - DISCOVERY_SERVICE_HOSTNAME=discovery-service
+      - OTEL_SERVICE_NAME=discovery-service
 
     healthcheck:
       test: "curl --fail --silent localhost:8761/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - kasyus-network
+
+    extends:
+      file: common-config.yml
+      service: microservice-common-configs
+
 
   api-gateway:
     build:
@@ -32,22 +36,24 @@ services:
     ports:
       - "8072:8072"
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - DISCOVERY_SERVICE_HOSTNAME=discovery-service
       - DISCOVERY_SERVICE_PORT=8761
+      - OTEL_SERVICE_NAME=api-gateway
     networks:
       - kasyus-network
     healthcheck:
       test: "curl --fail --silent localhost:8072/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      retries: 40
+      start_period: 20s
 #    depends_on:
 #      discovery-service:
 #        condition: service_healthy
     restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
 
   product-service:
     build:
@@ -57,26 +63,28 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8081
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_products
       - SPRING_DATASOURCE_USERNAME=kasyus
       - SPRING_DATASOURCE_PASSWORD=kasyus123
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
       - SPRING_REDIS_HOST=redis
+      - OTEL_SERVICE_NAME=product-service
     networks:
       - kasyus-network
     healthcheck:
       test: "curl --fail --silent product-service:8081/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
     restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
 
 
   order-service:
@@ -87,27 +95,29 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8082
       - DISCOVERY_SERVICE_HOSTNAME=discovery-service
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_orders
       - SPRING_DATASOURCE_USERNAME=kasyus
       - SPRING_DATASOURCE_PASSWORD=kasyus123
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
       - SPRING_REDIS_HOST=redis
+      - OTEL_SERVICE_NAME=order-service
     networks:
       - kasyus-network
     healthcheck:
       test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
     restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
 
 
   postgres:
@@ -126,9 +136,9 @@ services:
       - kasyus-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kasyus"]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 20
 
 
   redis:
@@ -154,9 +164,9 @@ services:
       - minio
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 20
     networks: &loki-dns
       kasyus-network:
         aliases:
@@ -173,9 +183,9 @@ services:
       - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 20
     depends_on:
       - minio
     networks:
@@ -216,7 +226,7 @@ services:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 15s
       timeout: 20s
-      retries: 5
+      retries: 20
     networks:
       - kasyus-network
 
@@ -261,9 +271,9 @@ services:
       - ../observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 20
     networks:
       - kasyus-network
 
@@ -343,9 +353,9 @@ services:
       - "3100:3100"
     healthcheck:
       test: [ "CMD", "service", "nginx", "status" ]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 20
     networks:
       - kasyus-network
 
