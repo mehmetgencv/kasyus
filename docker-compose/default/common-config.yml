@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  microservice-base-config:
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/libs/opentelemetry-javaagent-2.11.0.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+
+  microservice-common-configs:
+    extends:
+      service: microservice-base-config
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+
+
+  microservice-eureka-config:
+    extends:
+      service: microservice-common-configs
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/

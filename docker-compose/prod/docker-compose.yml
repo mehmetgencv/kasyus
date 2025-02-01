@@ -39,6 +39,7 @@ services:
       - DISCOVERY_SERVICE_HOSTNAME=discovery-service
       - DISCOVERY_SERVICE_PORT=8761
       - OTEL_SERVICE_NAME=api-gateway
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI=http://keycloak:8080/realms/master/protocol/openid-connect/certs
     networks:
       - kasyus-network
     healthcheck:
@@ -60,8 +61,6 @@ services:
       context: ../../product-service
       dockerfile: Dockerfile
     container_name: product-service
-    ports:
-      - "8081:8081"
     environment:
       - SERVER_PORT=8081
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_products
@@ -148,6 +147,18 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - kasyus-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.0
+    container_name: keycloak
+    ports:
+      - "7080:8080"
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+    command: "start-dev"
     networks:
       - kasyus-network
 

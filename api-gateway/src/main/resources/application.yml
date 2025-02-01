@@ -32,6 +32,12 @@ spring:
       port: 6379
       timeout: 1s
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:7080/realms/master/protocol/openid-connect/certs"
+
 springdoc:
   api-docs:
     enabled: true
