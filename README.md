@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="public/kasyus.svg" alt="Kasyus Logo" width="400">
+</div>
+
 # Kasyus E-Commerce Platform
 
 A modern, scalable e-commerce platform built with microservices architecture using Spring Cloud and Docker.
