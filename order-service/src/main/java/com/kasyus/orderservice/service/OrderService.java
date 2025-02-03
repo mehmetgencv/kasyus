@@ -13,4 +13,6 @@ public interface OrderService {
     List<Order> getAllOrders();
     Order updateOrder(Order order);
     void deleteOrder(Long id);
+
+    boolean updateCommunicationStatus(Long orderId);
 } 

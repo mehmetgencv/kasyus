@@ -2,6 +2,8 @@ package com.kasyus.product_service.service;
 
 import com.kasyus.product_service.model.Product;
 import com.kasyus.product_service.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,8 +17,10 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     public ProductServiceImpl(ProductRepository productRepository) {
+
         this.productRepository = productRepository;
     }
 

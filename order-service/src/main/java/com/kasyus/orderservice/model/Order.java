@@ -18,19 +18,23 @@ public class Order {
     private Long userId;
     private BigDecimal totalAmount;
     private String status;
+
+    @Column(name = "communication_sw")
+    private Boolean communicationSw;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public Order() {
     }
 
-    public Order(String orderNumber, Long userId, BigDecimal totalAmount, String status) {
+    public Order(String orderNumber, Long userId, BigDecimal totalAmount, String status, Boolean communicationSw, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.orderNumber = orderNumber;
         this.userId = userId;
         this.totalAmount = totalAmount;
         this.status = status;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.communicationSw = communicationSw;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Long getId() {
@@ -71,6 +75,14 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getCommunicationSw() {
+        return communicationSw;
+    }
+
+    public void setCommunicationSw(Boolean communicationSw) {
+        this.communicationSw = communicationSw;
     }
 
     public LocalDateTime getCreatedAt() {
