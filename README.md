@@ -79,12 +79,42 @@ cd docker-compose/default
 docker-compose up -d
 ```
 
+### Deployment Options
+
+### Kubernetes Deployment
+
+For production-grade deployment using Kubernetes, refer to our [Kubernetes Deployment Guide](kubernetes/README.md).
+
+Key features of our Kubernetes deployment:
+- Scalable microservices architecture
+- Automated health checks and recovery
+- Resource management and monitoring
+- Persistent storage for databases and caches
+- Service discovery and load balancing
+
+To get started with Kubernetes deployment:
+```bash
+cd kubernetes
+kubectl apply -f 2_configmaps.yaml
+# Follow the deployment guide for complete instructions
+```
+
 ### Service URLs
 
 - API Gateway: http://localhost:8072
 - Discovery Service Dashboard: http://localhost:8761
 - Keycloak Admin Console: http://localhost:7080
 - RabbitMQ Management UI: http://localhost:15672
+
+## Authentication and API Usage
+
+For detailed instructions on setting up authentication and using the APIs, please refer to our [Usage Guide](public/kasyus-usage.md). The guide covers:
+
+- Setting up Keycloak authentication
+- Creating service accounts and users
+- Assigning roles and permissions
+- Making authenticated API requests
+- Error handling and troubleshooting
 
 ### Authentication Setup
 
