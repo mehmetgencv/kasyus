@@ -1,13 +1,22 @@
 package com.kasyus.product_service.model;
 
+import com.kasyus.product_service.model.enums.ProductType;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
 @Table(name = "products")
+@EntityListeners(AuditingEntityListener.class)
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,34 +30,49 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private Integer stockQuantity;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private ProductType productType;
+
+    private Long sellerId;
+
     private String sku;
+
+    @Column(name = "created_at", updatable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
+
+    @Column(name = "created_by", updatable = false)
+    @CreatedBy
+    private String createdBy;
+
+    @Column(name = "updated_at")
+    @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    @LastModifiedBy
+    private String updatedBy;
 
     public Product() {
     }
 
-    public Product(String name, String description, BigDecimal price, Integer stockQuantity, String category, String sku) {
+
+    public Product(String name, String description, BigDecimal price, Category category, ProductType productType, Long sellerId, String sku) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.stockQuantity = stockQuantity;
         this.category = category;
+        this.productType = productType;
+        this.sellerId = sellerId;
         this.sku = sku;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -75,20 +99,28 @@ public class Product {
         this.price = price;
     }
 
-    public Integer getStockQuantity() {
-        return stockQuantity;
-    }
-
-    public void setStockQuantity(Integer stockQuantity) {
-        this.stockQuantity = stockQuantity;
-    }
-
-    public String getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public ProductType getProductType() {
+        return productType;
+    }
+
+    public void setProductType(ProductType productType) {
+        this.productType = productType;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(Long sellerId) {
+        this.sellerId = sellerId;
     }
 
     public String getSku() {
@@ -103,16 +135,16 @@ public class Product {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
     @Override
@@ -125,22 +157,27 @@ public class Product {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, sku);
-    }
-
-    @Override
     public String toString() {
         return "Product{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", price=" + price +
-                ", stockQuantity=" + stockQuantity +
-                ", category='" + category + '\'' +
+                ", category=" + category +
+                ", productType=" + productType +
+                ", sellerId=" + sellerId +
                 ", sku='" + sku + '\'' +
                 ", createdAt=" + createdAt +
+                ", createdBy='" + createdBy + '\'' +
                 ", updatedAt=" + updatedAt +
+                ", updatedBy='" + updatedBy + '\'' +
                 '}';
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, sku);
+    }
+
+
 } 
