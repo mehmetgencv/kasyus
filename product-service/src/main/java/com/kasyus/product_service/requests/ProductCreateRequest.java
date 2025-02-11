@@ -1,6 +1,5 @@
 package com.kasyus.product_service.requests;
 
-import com.kasyus.product_service.model.Category;
 import com.kasyus.product_service.model.enums.ProductType;
 
 import java.math.BigDecimal;

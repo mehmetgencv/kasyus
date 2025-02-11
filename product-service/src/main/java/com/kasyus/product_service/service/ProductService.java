@@ -1,7 +1,6 @@
 package com.kasyus.product_service.service;
 
 import com.kasyus.product_service.dto.ProductDto;
-import com.kasyus.product_service.model.Product;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 

@@ -11,9 +11,7 @@ public record ProductDto(
         Long categoryId,
         ProductType productType,
         Long sellerId,
-        String sku,
-        String createdBy,
-        String updatedBy
+        String sku
 
 
 ) {

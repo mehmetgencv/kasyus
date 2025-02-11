@@ -2,7 +2,6 @@ package com.kasyus.product_service.controller;
 
 import com.kasyus.product_service.dto.ProductDto;
 import com.kasyus.product_service.general.RestResponse;
-import com.kasyus.product_service.model.Product;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 import com.kasyus.product_service.service.ProductService;
@@ -29,11 +28,11 @@ public class ProductController {
 
 
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@RequestBody ProductCreateRequest request) {
+    public ResponseEntity<RestResponse<ProductDto>> createProduct(@RequestBody ProductCreateRequest request) {
         logger.debug("createProduct method start");
         ProductDto createdProduct = productService.createProduct(request);
         logger.debug("createProduct method end");
-        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(RestResponse.of(createdProduct, "Product created successfully"));
     }
 
     @GetMapping("/{id}")
