@@ -7,6 +7,6 @@ import java.util.List;
 public record CategoryDto(
         Long id,
         String name,
-        List<Product> products
+        List<ProductDto> products
 ) {
 }

@@ -31,6 +31,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(restResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<Object> handleCategoryNotFoundException(CategoryNotFoundException ex, WebRequest request) {
+        String message = ex.getMessage();
+        String description = request.getDescription(false);
+        GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
+        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
+        return new ResponseEntity<>(restResponse, HttpStatus.NOT_FOUND);
+    }
 
 
     @Override
