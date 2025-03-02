@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kasyus_auth}
+    username: ${SPRING_DATASOURCE_USERNAME:kasyus}
+    password: ${SPRING_DATASOURCE_PASSWORD:kasyus123}
+    driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+    consumer:
+      group-id: auth-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.kasyus.authservice.*"
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+app:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      expiration: 86400000 # 1 day
+      refresh-token:
+        expiration: 604800000 # 7 days
+  outbox:
+    processing-interval: 5000 # 5 seconds
+    batch-size: 100
+
+logging:
+  level:
+    com:
+      kasyus:
+        authservice: DEBUG
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
+server:
+  port: 8088
+
+
