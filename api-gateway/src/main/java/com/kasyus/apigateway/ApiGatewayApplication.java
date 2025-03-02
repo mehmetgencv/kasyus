@@ -31,6 +31,12 @@ public class ApiGatewayApplication {
 	@Bean
 	public RouteLocator kasyusRouteConfig(RouteLocatorBuilder routeLocatorBuilder) {
 		return routeLocatorBuilder.routes()
+				.route("auth-service", p -> p
+						.path("/auth-service/api/v1/auth/**")
+						.filters(f -> f
+								.stripPrefix(1)
+								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+						.uri("lb://auth-service"))
 				// Order Service Routes
 				.route("order-service", p -> p
 						.path("/order-service/api/v1/orders/**")
@@ -45,12 +51,11 @@ public class ApiGatewayApplication {
 
 				// Product Service Routes
 				.route("product-service", p -> p
-						.path("/product-service/api/v1/products/**")
+						.path("/product-service/api/v1/**")
 						.filters(f -> f
 								.stripPrefix(1)
 								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
-								.requestRateLimiter(config -> config.setRateLimiter(redisRateLimiter())
-										.setKeyResolver(userKeyResolver())))
+								)
 						.uri("lb://product-service"))
 
 				// Swagger UI route for Product Service
@@ -85,9 +90,5 @@ public class ApiGatewayApplication {
 				1);
 	}
 
-	@Bean
-	KeyResolver userKeyResolver() {
-		return exchange -> Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("user"))
-				.defaultIfEmpty("anonymous");
-	}
+
 }

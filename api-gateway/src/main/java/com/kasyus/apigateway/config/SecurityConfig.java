@@ -1,40 +1,100 @@
 package com.kasyus.apigateway.config;
 
+import com.kasyus.apigateway.dto.responses.TokenValidationResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity serverHttpSecurity) {
-        serverHttpSecurity.authorizeExchange(exchanges -> exchanges
-                .pathMatchers(HttpMethod.GET).permitAll()
-                .pathMatchers("/order-service/**").hasRole("Orders")
-                .pathMatchers("/product-service/**").hasRole("Products"))
-                .oauth2ResourceServer(oAuth2ResourceServerSpec -> oAuth2ResourceServerSpec
-                        .jwt(jwtSpec -> jwtSpec.jwtAuthenticationConverter(grantedAuthoritiesExtractor())));
-        serverHttpSecurity.csrf(csrfSpec -> csrfSpec.disable());
-        return serverHttpSecurity.build();
+    private static final String AUTH_SERVICE_VALIDATE_URL =  "/api/v1/auth/validate";
+
+    private final WebClient webClient;
+
+    public SecurityConfig(WebClient webClient) {
+        this.webClient = webClient;
     }
 
-    private Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() {
-        JwtAuthenticationConverter jwtAuthenticationConverter =
-                new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter
-                (new KeycloakRoleConverter());
-        return new ReactiveJwtAuthenticationConverterAdapter(jwtAuthenticationConverter);
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers("/auth-service/**").permitAll()
+                        .pathMatchers("/actuator/**").permitAll()
+                        .anyExchange().authenticated()
+                )
+                .addFilterAt(authenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+
+        return http.build();
     }
+
+    @Bean
+    public WebFilter authenticationFilter() {
+        return (ServerWebExchange exchange, WebFilterChain chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            String path = request.getURI().getPath();
+
+            // Eğer istek Auth Service'e login, register gibi public endpoint'lere gidiyorsa filtreleme yapma
+            if (path.startsWith("/auth-service") || path.startsWith("/actuator")) {
+                return chain.filter(exchange);
+            }
+
+            // Authorization header kontrolü
+            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                return Mono.error(new RuntimeException("Authorization header eksik"));
+            }
+
+            String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION).replace("Bearer ", "");
+            System.out.println("WebClient requesting to: " + AUTH_SERVICE_VALIDATE_URL);
+            return webClient.post()
+                    .uri(AUTH_SERVICE_VALIDATE_URL) // Auth Service üzerinden doğrulama
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                            response -> Mono.error(new RuntimeException("Token geçersiz")))
+                    .bodyToMono(TokenValidationResponse.class)
+                    .flatMap(validationResponse -> {
+                        if (!validationResponse.valid()) {
+                            return Mono.error(new RuntimeException("Token geçersiz"));
+                        }
+                        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(validationResponse.roles());
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(validationResponse.email(), null, authorities);
+                        return chain.filter(exchange.mutate()
+                                        .request(exchange.getRequest().mutate()
+                                                .header("X-User-Email", validationResponse.email())
+                                                .header("X-User-Roles", String.join(",", validationResponse.roles()))
+                                                .build())
+                                        .build())
+                                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
+                    });
+                        // Kullanıcı bilgilerini header olarak ekle
+//                        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+//                                .header("X-User-Email", validationResponse.email())
+//                                .header("X-User-Roles", String.join(",", validationResponse.roles().toString()))
+//                                .build();
+//
+//                        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+//                    });
+        };
+    }
+
 }
