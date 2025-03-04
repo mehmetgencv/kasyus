@@ -133,6 +133,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new TokenValidationResponse(
                 jwtService.isTokenValid(token, user),
                 user.getEmail(),
+                user.getId().toString(),
                 Collections.singletonList(user.getRole())
         );
 

@@ -7,7 +7,6 @@ import com.kasyus.authservice.dto.requests.RegisterRequest;
 import com.kasyus.authservice.dto.responses.AuthResponse;
 import com.kasyus.authservice.dto.responses.TokenValidationResponse;
 import com.kasyus.authservice.service.AuthenticationService;
-import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

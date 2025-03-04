@@ -15,4 +15,9 @@ public class KafkaConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic authEventsDlqTopic() {
+        return new NewTopic("auth-events-dlq", 1, (short) 1);
+    }
 } 

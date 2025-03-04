@@ -1,5 +1,6 @@
 package com.kasyus.authservice.security.impl;
 
+import com.kasyus.authservice.model.User;
 import com.kasyus.authservice.security.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -62,6 +63,11 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
+        if (userDetails instanceof User user) {
+            extraClaims.put("userId", user.getId().toString());
+        } else {
+            throw new IllegalArgumentException("UserDetails must be an instance of User to provide userId");
+        }
         extraClaims.put("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(",")));

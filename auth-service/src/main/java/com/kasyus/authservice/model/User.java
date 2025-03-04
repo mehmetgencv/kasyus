@@ -96,6 +96,7 @@ public class User implements UserDetails {
         return id;
     }
 
+
     public String getFirstName() {
         return firstName;
     }

@@ -5,6 +5,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "outbox_events")
@@ -33,6 +34,11 @@ public class OutboxEvent {
 
     @Column(name = "published")
     private boolean published = false;
+
+    @Column(nullable = false)
+    private int retryCount = 0;
+    private static final int MAX_RETRIES = 3;
+
 
     @Version
     private Long version;
@@ -81,4 +87,46 @@ public class OutboxEvent {
     public Long getVersion() {
         return version;
     }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount++;
+    }
+
+    public boolean shouldRetry() {
+        return this.retryCount < MAX_RETRIES;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OutboxEvent that = (OutboxEvent) o;
+        return Objects.equals(aggregateId, that.aggregateId) &&
+                Objects.equals(eventType, that.eventType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(aggregateId, eventType);
+    }
+
+    @Override
+    public String toString() {
+        return "OutboxEvent{" +
+                "id=" + id +
+                ", aggregateType='" + aggregateType + '\'' +
+                ", aggregateId='" + aggregateId + '\'' +
+                ", eventType='" + eventType + '\'' +
+                ", payload='" + payload + '\'' +
+                ", createdAt=" + createdAt +
+                ", published=" + published +
+                ", retryCount=" + retryCount +
+                ", version=" + version +
+                '}';
+    }
+
 } 

@@ -41,10 +41,13 @@ public class AuthEventPublisherImpl implements AuthEventPublisher {
     private void publishAuthEvent(String eventType, User user) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("eventType", eventType);
-        payload.put("userId", user.getId());
+        payload.put("userId", user.getId().toString());
+        payload.put("firstName", user.getFirstName());
+        payload.put("lastName", user.getLastName());
         payload.put("email", user.getEmail());
         payload.put("timestamp", LocalDateTime.now());
-        payload.put("role", user.getRole());
+        payload.put("role", user.getRole().toString());
+        payload.put("createdBy", user.getEmail());
 
         outboxService.saveEvent(
             AGGREGATE_TYPE,

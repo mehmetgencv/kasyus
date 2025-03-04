@@ -7,6 +7,7 @@ import com.kasyus.authservice.repository.OutboxEventRepository;
 import com.kasyus.authservice.service.OutboxService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -48,32 +49,58 @@ public class OutboxServiceImpl implements OutboxService {
     }
 
     @Override
-    @Scheduled(fixedRate = 5000) // Run every 5 seconds
+    @Scheduled(fixedRate = 5000)
     @Transactional
     public void processOutboxEvents() {
-        var events = outboxEventRepository.findUnpublishedEventsWithLock();
-        
+        var events = outboxEventRepository.findUnpublishedEventsWithLock(PageRequest.of(0, 100));
+
         for (OutboxEvent event : events) {
             try {
-                // Deserialize JSON payload with explicit type information
                 Map<String, Object> payload = objectMapper.readValue(event.getPayload(), MAP_TYPE_REFERENCE);
-                
-                // Publish to Kafka
-                kafkaTemplate.send(
-                    event.getAggregateType() + "-events",
-                    event.getAggregateId(),
-                    payload
-                ).get(); // Wait for the send to complete
 
-                // Mark as published
-                event.markAsPublished();
-                outboxEventRepository.save(event);
-                
-                logger.info("Successfully published event: {}", event.getId());
+                kafkaTemplate.send(
+                        event.getAggregateType() + "-events",
+                        event.getAggregateId(),
+                        payload
+                ).whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        markEventAsPublished(event);
+                        logger.info("Successfully published event: {}", event.getId());
+                    } else {
+                        handleRetryOrDLQ(event, ex);
+                    }
+                });
             } catch (Exception e) {
-                logger.error("Failed to process outbox event: {}", event.getId(), e);
-                // Don't throw the exception - let other events be processed
+                logger.error("Failed to deserialize payload for event: {}", event.getId(), e);
+                handleRetryOrDLQ(event, e);
             }
         }
+    }
+
+    private void handleRetryOrDLQ(OutboxEvent event, Throwable ex) {
+        event.incrementRetryCount();
+        if (event.shouldRetry()) {
+            logger.warn("Retrying event: {}. Retry count: {}", event.getId(), event.getRetryCount());
+            outboxEventRepository.save(event); // Tekrar denensin diye published=false kalır
+        } else {
+            logger.error("Max retries reached for event: {}. Sending to DLQ", event.getId(), ex);
+            kafkaTemplate.send(
+                    event.getAggregateType() + "-events-dlq",
+                    event.getAggregateId(),
+                    objectMapper.convertValue(event.getPayload(), MAP_TYPE_REFERENCE)
+            ).whenComplete((dlqResult, dlqEx) -> {
+                if (dlqEx == null) {
+                    logger.info("Event sent to DLQ: {}", event.getId());
+                    markEventAsPublished(event);
+                } else {
+                    logger.error("Failed to send event to DLQ: {}", event.getId(), dlqEx);
+                }
+            });
+        }
+    }
+
+    private void markEventAsPublished(OutboxEvent event) {
+        event.markAsPublished();
+        outboxEventRepository.save(event);
     }
 } 
