@@ -1,6 +1,8 @@
 package com.kasyus.apigateway.config;
 
 import com.kasyus.apigateway.dto.responses.TokenValidationResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +26,7 @@ import java.util.List;
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     private static final String AUTH_SERVICE_VALIDATE_URL =  "/api/v1/auth/validate";
 
@@ -36,9 +39,12 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth-service/**").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**", "/favicon.ico").permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(authenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
@@ -53,7 +59,12 @@ public class SecurityConfig {
             String path = request.getURI().getPath();
 
             // Eğer istek Auth Service'e login, register gibi public endpoint'lere gidiyorsa filtreleme yapma
-            if (path.startsWith("/auth-service") || path.startsWith("/actuator")) {
+            if (path.startsWith("/auth-service") ||
+                    path.startsWith("/actuator") ||
+                    path.startsWith("/v3/api-docs") ||
+                    path.startsWith("/swagger-ui") ||
+                    path.startsWith("/webjars/") ||
+                    path.equals("/favicon.ico")) {
                 return chain.filter(exchange);
             }
 
@@ -72,6 +83,7 @@ public class SecurityConfig {
                             response -> Mono.error(new RuntimeException("Token geçersiz")))
                     .bodyToMono(TokenValidationResponse.class)
                     .flatMap(validationResponse -> {
+                        logger.info("Token validated, userId: {}", validationResponse.userId());
                         if (!validationResponse.valid()) {
                             return Mono.error(new RuntimeException("Token geçersiz"));
                         }
@@ -81,19 +93,12 @@ public class SecurityConfig {
                         return chain.filter(exchange.mutate()
                                         .request(exchange.getRequest().mutate()
                                                 .header("X-User-Email", validationResponse.email())
+                                                .header("X-User-Id", validationResponse.userId())
                                                 .header("X-User-Roles", String.join(",", validationResponse.roles()))
                                                 .build())
                                         .build())
                                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
                     });
-                        // Kullanıcı bilgilerini header olarak ekle
-//                        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-//                                .header("X-User-Email", validationResponse.email())
-//                                .header("X-User-Roles", String.join(",", validationResponse.roles().toString()))
-//                                .build();
-//
-//                        return chain.filter(exchange.mutate().request(mutatedRequest).build());
-//                    });
         };
     }
 

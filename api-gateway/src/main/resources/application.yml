@@ -62,6 +62,10 @@ springdoc:
         name: Product Service API
       - url: /v3/api-docs/order-service
         name: Order Service API
+      - url: /v3/api-docs/user-service
+        name: User Service API
+      - url: /v3/api-docs/auth-service
+        name: Auth Service API
 
 management:
   endpoints:

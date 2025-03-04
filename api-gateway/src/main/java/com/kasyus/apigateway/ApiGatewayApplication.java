@@ -37,6 +37,24 @@ public class ApiGatewayApplication {
 								.stripPrefix(1)
 								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
 						.uri("lb://auth-service"))
+				.route("auth-service-swagger", p -> p
+						.path("/v3/api-docs/auth-service")
+						.filters(f -> f.rewritePath(
+								"/v3/api-docs/auth-service",
+								"/v3/api-docs"))
+						.uri("lb://auth-service"))
+				.route("user-service", p -> p
+						.path("/user-service/api/v1/**")
+						.filters(f -> f
+								.stripPrefix(1)
+								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+						.uri("lb://user-service"))
+				.route("user-service-swagger", p -> p
+						.path("/v3/api-docs/user-service")
+						.filters(f -> f.rewritePath(
+								"/v3/api-docs/user-service",
+								"/v3/api-docs"))
+						.uri("lb://user-service"))
 				// Order Service Routes
 				.route("order-service", p -> p
 						.path("/order-service/api/v1/orders/**")
@@ -47,6 +65,11 @@ public class ApiGatewayApplication {
 										.setFallbackUri("forward:/contactSupport"))
 
 						)
+						.uri("lb://order-service"))
+				.route("order-service-swagger", p -> p
+						.path("/order-service/v3/api-docs/**", "/order-service/swagger-ui/**")
+						.filters(f -> f
+								.rewritePath("/order-service/(?<remaining>.*)", "/${remaining}"))
 						.uri("lb://order-service"))
 
 				// Product Service Routes
@@ -65,20 +88,6 @@ public class ApiGatewayApplication {
 								"/v3/api-docs/product-service",
 								"/v3/api-docs"))
 						.uri("lb://product-service"))
-
-				// Swagger UI route for Order Service
-				.route("order-service-swagger", p -> p
-						.path("/v3/api-docs/order-service")
-						.filters(f -> f.rewritePath(
-								"/v3/api-docs/order-service",
-								"/v3/api-docs"))
-						.uri("lb://order-service"))
-
-				// Swagger UI
-				.route("swagger-ui", p -> p
-						.path("/swagger-ui/**")
-						.uri("lb://api-gateway"))
-
 				.build();
 	}
 
