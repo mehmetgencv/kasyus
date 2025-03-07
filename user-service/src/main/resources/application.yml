@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kasyus_users}
+    username: ${SPRING_DATASOURCE_USERNAME:kasyus}
+    password: ${SPRING_DATASOURCE_PASSWORD:kasyus123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: user-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.kasyus.userservice.dto
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.kasyus.userservice.dto.UserRegisteredEvent
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+info:
+  app:
+    name: "user-service"
+    description: "User Product Service Application"
+    version: "1.0.0"
+
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.kasyus: DEBUG
