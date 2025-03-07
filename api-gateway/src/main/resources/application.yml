@@ -20,23 +20,26 @@ spring:
           uri: lb://product-service
           predicates:
             - Path=/product-service/**
-          filters:
-            - RemoveRequestHeader=Authorization
 
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders: "*"
-            exposedHeaders: "*"
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/**
+
+#      globalcors:
+#        add-to-simple-url-handler-mapping: true
+#        corsConfigurations:
+#          '[/**]':
+#            allowedOrigins: "*"
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - PUT
+#              - DELETE
+#              - PATCH
+#              - OPTIONS
+#            allowedHeaders: "*"
+#            exposedHeaders: "*"
   data:
     redis:
       connect-timeout: 2s

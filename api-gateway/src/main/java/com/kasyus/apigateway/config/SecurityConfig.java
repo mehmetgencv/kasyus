@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -15,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -39,14 +41,21 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth-service/**").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**", "/favicon.ico").permitAll()
                         .anyExchange().authenticated()
                 )
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of("http://localhost:3000"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
                 .addFilterAt(authenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
 
         return http.build();
@@ -58,7 +67,9 @@ public class SecurityConfig {
             ServerHttpRequest request = exchange.getRequest();
             String path = request.getURI().getPath();
 
-            // Eğer istek Auth Service'e login, register gibi public endpoint'lere gidiyorsa filtreleme yapma
+            if (request.getMethod() == HttpMethod.OPTIONS) {
+                return chain.filter(exchange);
+            }
             if (path.startsWith("/auth-service") ||
                     path.startsWith("/actuator") ||
                     path.startsWith("/v3/api-docs") ||
@@ -68,7 +79,6 @@ public class SecurityConfig {
                 return chain.filter(exchange);
             }
 
-            // Authorization header kontrolü
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 return Mono.error(new RuntimeException("Authorization header eksik"));
             }
@@ -76,7 +86,7 @@ public class SecurityConfig {
             String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION).replace("Bearer ", "");
             System.out.println("WebClient requesting to: " + AUTH_SERVICE_VALIDATE_URL);
             return webClient.post()
-                    .uri(AUTH_SERVICE_VALIDATE_URL) // Auth Service üzerinden doğrulama
+                    .uri(AUTH_SERVICE_VALIDATE_URL)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                     .retrieve()
                     .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
