@@ -22,6 +22,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public GlobalExceptionHandler() {
     }
 
+    @ExceptionHandler(AddressNotFoundException.class)
+    public ResponseEntity<Object> handleAddressNotFoundException(AddressNotFoundException ex, WebRequest request) {
+        String message = ex.getMessage();
+        String description = request.getDescription(false);
+        GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
+        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
+        return new ResponseEntity<>(restResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<Object> handlePaymentNotFoundException(PaymentNotFoundException ex, WebRequest request) {
+        String message = ex.getMessage();
+        String description = request.getDescription(false);
+        GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
+        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
+        return new ResponseEntity<>(restResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
         String message = ex.getMessage();

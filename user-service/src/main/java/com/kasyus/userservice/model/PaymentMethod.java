@@ -1,5 +1,6 @@
 package com.kasyus.userservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.kasyus.userservice.model.enums.PaymentType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -17,8 +18,12 @@ public class PaymentMethod extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -50,10 +55,11 @@ public class PaymentMethod extends BaseEntity {
     }
 
     // Full constructor
-    public PaymentMethod(UUID id, User user, PaymentType type, boolean isDefault, String provider,
+    public PaymentMethod(UUID id, User user, String name,  PaymentType type, boolean isDefault, String provider,
                          String token, String lastFour, LocalDate expiryDate) {
         this.id = id;
         this.user = user;
+        this.name = name;
         this.type = type;
         this.isDefault = isDefault;
         this.provider = provider;
@@ -64,6 +70,7 @@ public class PaymentMethod extends BaseEntity {
 
     // Getters
     public UUID getId() { return id; }
+    public String getName() { return name; }
     public User getUser() { return user; }
     public PaymentType getType() { return type; }
     public boolean isDefault() { return isDefault; }
@@ -74,6 +81,7 @@ public class PaymentMethod extends BaseEntity {
 
     // Setters
     public void setId(UUID id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
     public void setUser(User user) { this.user = user; }
     public void setType(PaymentType type) { this.type = type; }
     public void setDefault(boolean isDefault) { this.isDefault = isDefault; }

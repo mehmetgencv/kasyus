@@ -4,6 +4,7 @@ package com.kasyus.userservice.service.Impl;
 import com.kasyus.userservice.dto.requests.PaymentMethodCreateRequest;
 import com.kasyus.userservice.dto.requests.PaymentMethodUpdateRequest;
 import com.kasyus.userservice.dto.responses.PaymentMethodResponse;
+import com.kasyus.userservice.exception.PaymentNotFoundException;
 import com.kasyus.userservice.exception.UserNotFoundException;
 import com.kasyus.userservice.mapper.PaymentMethodMapper;
 import com.kasyus.userservice.model.PaymentMethod;
@@ -39,7 +40,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         user.getPaymentMethods().add(paymentMethod);
         userRepository.save(user);
         logger.info("Payment method added to user: {}", userId);
-        return paymentMethod.getId().toString();
+        return "ok";
     }
 
     @Override
@@ -54,16 +55,8 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Transactional
     public void updatePaymentMethod(String userId, String paymentMethodId, PaymentMethodUpdateRequest request) {
         User user = getUserEntity(userId);
-        PaymentMethod paymentMethod = user.getPaymentMethods().stream()
-                .filter(pm -> pm.getId().toString().equals(paymentMethodId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Payment method not found: " + paymentMethodId));
-        paymentMethod.setType(request.type());
-        paymentMethod.setDefault(request.isDefault());
-        paymentMethod.setProvider(request.provider());
-        paymentMethod.setToken(request.token());
-        paymentMethod.setLastFour(request.lastFour());
-        paymentMethod.setExpiryDate(request.expiryDate());
+        PaymentMethod paymentMethod = getPaymentMethodEntity(user, paymentMethodId);
+        paymentMethodMapper.updatePaymentMethod(paymentMethod, request);
         userRepository.save(user);
         logger.info("Payment method updated for user: {}, paymentMethodId: {}", userId, paymentMethodId);
     }
@@ -72,13 +65,17 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Transactional
     public void deletePaymentMethod(String userId, String paymentMethodId) {
         User user = getUserEntity(userId);
-        PaymentMethod paymentMethod = user.getPaymentMethods().stream()
-                .filter(pm -> pm.getId().toString().equals(paymentMethodId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Payment method not found: " + paymentMethodId));
+        PaymentMethod paymentMethod = getPaymentMethodEntity(user, paymentMethodId);
         user.getPaymentMethods().remove(paymentMethod);
         userRepository.save(user);
         logger.info("Payment method deleted for user: {}, paymentMethodId: {}", userId, paymentMethodId);
+    }
+
+    private PaymentMethod getPaymentMethodEntity(User user, String paymentMethodId) {
+        return user.getPaymentMethods().stream()
+                .filter(pm -> pm.getId().toString().equals(paymentMethodId))
+                .findFirst()
+                .orElseThrow(() -> new PaymentNotFoundException("Payment method not found: " + paymentMethodId));
     }
 
     private User getUserEntity(String userId) {

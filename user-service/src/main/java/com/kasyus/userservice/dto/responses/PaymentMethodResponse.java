@@ -2,19 +2,16 @@ package com.kasyus.userservice.dto.responses;
 
 import com.kasyus.userservice.model.enums.PaymentType;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.YearMonth;
+
 
 public record PaymentMethodResponse(
         String id,
+        String name,
         PaymentType type,
         boolean isDefault,
         String provider,
         String token,
         String lastFour,
-        LocalDate expiryDate,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        String createdBy,
-        String updatedBy
+        YearMonth expiryDate
 ) {}
