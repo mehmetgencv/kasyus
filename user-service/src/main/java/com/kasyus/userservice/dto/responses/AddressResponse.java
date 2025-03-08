@@ -2,9 +2,12 @@ package com.kasyus.userservice.dto.responses;
 
 import com.kasyus.userservice.model.enums.AddressType;
 
+import java.util.UUID;
+
 public record AddressResponse(
-        String id,
+        UUID id,
         AddressType type,
+        String name,
         boolean isDefault,
         String streetAddress,
         String city,

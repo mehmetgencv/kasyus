@@ -1,5 +1,7 @@
 package com.kasyus.userservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kasyus.userservice.model.enums.AddressType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -12,17 +14,21 @@ import java.util.UUID;
 public class Address extends BaseEntity {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     private AddressType type;
+
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "is_default")
     private boolean isDefault;
@@ -50,10 +56,11 @@ public class Address extends BaseEntity {
     public Address() {}
 
     // Constructor for API
-    public Address(User user, AddressType type, String streetAddress, String city, String state,
+    public Address(User user, AddressType type, String name, String streetAddress, String city, String state,
                    String postalCode, String country, String phone) {
         this.user = user;
         this.type = type;
+        this.name = name;
         this.streetAddress = streetAddress;
         this.city = city;
         this.state = state;
@@ -64,11 +71,12 @@ public class Address extends BaseEntity {
     }
 
     // Full constructor
-    public Address(UUID id, User user, AddressType type, boolean isDefault, String streetAddress,
+    public Address(UUID id, User user, AddressType type, String name, boolean isDefault, String streetAddress,
                    String city, String state, String postalCode, String country, String phone) {
         this.id = id;
         this.user = user;
         this.type = type;
+        this.name = name;
         this.isDefault = isDefault;
         this.streetAddress = streetAddress;
         this.city = city;
@@ -82,6 +90,7 @@ public class Address extends BaseEntity {
     public UUID getId() { return id; }
     public User getUser() { return user; }
     public AddressType getType() { return type; }
+    public String getName() { return name; }
     public boolean isDefault() { return isDefault; }
     public String getStreetAddress() { return streetAddress; }
     public String getCity() { return city; }
@@ -94,6 +103,7 @@ public class Address extends BaseEntity {
     public void setId(UUID id) { this.id = id; }
     public void setUser(User user) { this.user = user; }
     public void setType(AddressType type) { this.type = type; }
+    public void setName(String name) { this.name = name; }
     public void setDefault(boolean isDefault) { this.isDefault = isDefault; }
     public void setStreetAddress(String streetAddress) { this.streetAddress = streetAddress; }
     public void setCity(String city) { this.city = city; }

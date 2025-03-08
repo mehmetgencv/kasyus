@@ -4,10 +4,12 @@ package com.kasyus.userservice.service.Impl;
 import com.kasyus.userservice.dto.requests.AddressCreateRequest;
 import com.kasyus.userservice.dto.requests.AddressUpdateRequest;
 import com.kasyus.userservice.dto.responses.AddressResponse;
+import com.kasyus.userservice.exception.AddressNotFoundException;
 import com.kasyus.userservice.exception.UserNotFoundException;
 import com.kasyus.userservice.mapper.AddressMapper;
 import com.kasyus.userservice.model.Address;
 import com.kasyus.userservice.model.User;
+import com.kasyus.userservice.repository.AddressRepository;
 import com.kasyus.userservice.repository.UserRepository;
 import com.kasyus.userservice.service.AddressService;
 import org.slf4j.Logger;
@@ -23,10 +25,13 @@ public class AddressServiceImpl implements AddressService {
 
     private static final Logger logger = LoggerFactory.getLogger(AddressServiceImpl.class);
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
+
     private final AddressMapper addressMapper;
 
-    public AddressServiceImpl(UserRepository userRepository, AddressMapper addressMapper) {
+    public AddressServiceImpl(UserRepository userRepository, AddressRepository addressRepository, AddressMapper addressMapper) {
         this.userRepository = userRepository;
+        this.addressRepository = addressRepository;
         this.addressMapper = addressMapper;
     }
 
@@ -35,12 +40,16 @@ public class AddressServiceImpl implements AddressService {
     public String addAddress(String userId, AddressCreateRequest request) {
         User user = getUserEntity(userId);
         Address address = addressMapper.toAddress(request);
+
         address.setUser(user);
         user.getAddresses().add(address);
+
         userRepository.save(user);
+
         logger.info("Address added to user: {}", userId);
-        return address.getId().toString();
+        return "ok";
     }
+
 
     @Override
     public Set<AddressResponse> getAddresses(String userId) {
@@ -54,11 +63,9 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public void updateAddress(String userId, String addressId, AddressUpdateRequest request) {
         User user = getUserEntity(userId);
-        Address address = user.getAddresses().stream()
-                .filter(a -> a.getId().toString().equals(addressId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Address not found: " + addressId));
+        Address address = getAddressEntity(user, addressId);
         address.setType(request.type());
+        address.setName(request.name());
         address.setDefault(request.isDefault());
         address.setStreetAddress(request.streetAddress());
         address.setCity(request.city());
@@ -74,13 +81,17 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public void deleteAddress(String userId, String addressId) {
         User user = getUserEntity(userId);
-        Address address = user.getAddresses().stream()
-                .filter(a -> a.getId().toString().equals(addressId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Address not found: " + addressId));
+        Address address =  getAddressEntity(user, addressId);
         user.getAddresses().remove(address);
         userRepository.save(user);
         logger.info("Address deleted for user: {}, addressId: {}", userId, addressId);
+    }
+
+    private Address getAddressEntity(User user, String addressId) {
+        return user.getAddresses().stream()
+                .filter(a -> a.getId().toString().equals(addressId))
+                .findFirst()
+                .orElseThrow(() -> new AddressNotFoundException("Address not found: " + addressId));
     }
 
     private User getUserEntity(String userId) {
