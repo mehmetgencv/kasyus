@@ -13,7 +13,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   cloud:
     function:
@@ -31,6 +31,11 @@ spring:
     username: guest
     password: guest
     connection-timeout: 10s
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
 
 
 management:
@@ -83,3 +88,9 @@ eureka:
       defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
 server:
   port: 8081
+
+minio:
+  url: http://localhost:9000
+  root-user: loki
+  root-password: supersecret
+  bucket-name: kasyus-products

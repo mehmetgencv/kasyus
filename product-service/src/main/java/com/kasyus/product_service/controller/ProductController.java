@@ -5,12 +5,15 @@ import com.kasyus.product_service.general.RestResponse;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 import com.kasyus.product_service.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,11 +30,6 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<String> testAuth(@RequestHeader HttpHeaders headers) {
-        System.out.println("Backend Headers: " + headers);
-        return ResponseEntity.ok("Headers: " + headers.toString());
-    }
 
     @PostMapping
     public ResponseEntity<RestResponse<ProductDto>> createProduct(@RequestBody ProductCreateRequest request) {
@@ -74,4 +72,46 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.ok(RestResponse.of(null, "Product deleted successfully"));
     }
+
+    // Image Operations
+
+    @PostMapping(value = "/{productId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload images for a product", description = "Uploads one or more images for a specific product")
+    public ResponseEntity<ProductDto> uploadProductImages(
+            @PathVariable Long productId,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "coverImageIndex", defaultValue = "0") int coverImageIndex) {
+        ProductDto productDto = productService.uploadProductImages(productId, images, coverImageIndex);
+        return ResponseEntity.ok(productDto);
+    }
+
+    @PutMapping(value = "/{productId}/images/{imageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Update a product image", description = "Updates the image or its cover status")
+    public ResponseEntity<ProductDto> updateProductImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId,
+            @RequestPart(value = "image", required = false) MultipartFile newImage,
+            @RequestParam(value = "isCoverImage", required = false) Boolean isCoverImage) {
+        ProductDto productDto = productService.updateProductImage(productId, imageId, newImage, isCoverImage);
+        return ResponseEntity.ok(productDto);
+    }
+
+    @PatchMapping("/{productId}/images/{imageId}/cover")
+    @Operation(summary = "Set an image as cover", description = "Sets a specific image as the cover image for a product")
+    public ResponseEntity<ProductDto> setCoverImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId) {
+        ProductDto productDto = productService.setCoverImage(productId, imageId);
+        return ResponseEntity.ok(productDto);
+    }
+
+    @DeleteMapping("/{productId}/images/{imageId}")
+    @Operation(summary = "Delete a product image", description = "Deletes a specific image from a product")
+    public ResponseEntity<ProductDto> deleteProductImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId) {
+        ProductDto productDto = productService.deleteProductImage(productId, imageId);
+        return ResponseEntity.ok(productDto);
+    }
+
 } 

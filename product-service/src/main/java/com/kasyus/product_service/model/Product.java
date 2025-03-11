@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -41,6 +43,9 @@ public class Product {
 
     private String sku;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
+
     @Column(name = "created_at", updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
@@ -61,7 +66,8 @@ public class Product {
     }
 
 
-    public Product(String name, String description, BigDecimal price, Category category, ProductType productType, Long sellerId, String sku) {
+    public Product(String name, String description, BigDecimal price, Category category, ProductType productType,
+                   Long sellerId, String sku) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -131,6 +137,19 @@ public class Product {
         this.sku = sku;
     }
 
+    public List<ProductImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
+    }
+
+    public void addImage(ProductImage image) {
+        images.add(image);
+        image.setProduct(this);
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -167,6 +186,7 @@ public class Product {
                 ", productType=" + productType +
                 ", sellerId=" + sellerId +
                 ", sku='" + sku + '\'' +
+                ", images=" + images +
                 ", createdAt=" + createdAt +
                 ", createdBy='" + createdBy + '\'' +
                 ", updatedAt=" + updatedAt +
