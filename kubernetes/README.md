@@ -5,7 +5,7 @@ This guide explains how to deploy and manage Kasyus services in Kubernetes. For 
 ## Directory Structure
 ```
 kubernetes/
-├── 1_keycloak.yml          # Keycloak authentication service
+├── 1_          #  authentication service
 ├── 2_configmaps.yaml       # Common configuration
 ├── 3_eurekaserver.yml      # Service discovery
 ├── 4_products.yml          # Product service

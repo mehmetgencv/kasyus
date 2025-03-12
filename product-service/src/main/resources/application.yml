@@ -25,12 +25,6 @@ spring:
           group: ${spring.application.name}
         sendCommunication-out-0:
           destination: send-communication
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    connection-timeout: 10s
 
   servlet:
     multipart:

@@ -6,15 +6,22 @@
 
 A modern, scalable e-commerce platform built with microservices architecture using Spring Cloud and Docker.
 
+## What is Kasyus?
+Kasyus is named after **Kasyus (Kassius) Mountain**, also known as **Kel Dağı**, a dormant volcanic mountain in Hatay, Turkey. The mountain has historical significance and is known for its rich biodiversity and ancient ruins, including the St. Barlaam Monastery from the Roman era.
+
 ## Overview
 
 This project implements a microservices-based e-commerce system with the following services:
 
 - **API Gateway (Port: 8072)**: Central entry point for client requests, handling routing and cross-cutting concerns
 - **Discovery Service (Port: 8761)**: Service registry and discovery using Netflix Eureka
-- **Order Service (Port: 8082)**: Order processing and management
+- **Auth Service (Port: 8088)**: Handles authentication and user management
+- **User Service (Port: 8082)**: Manages user profiles and accounts
+- **Order Service (Port: 8083)**: Order processing and management
 - **Product Service (Port: 8081)**: Product catalog and inventory management
 - **Message Service (Port: 9010)**: Handles messaging and notifications
+- **MinIO (Port: 9001)**: Object storage service for handling media assets
+- **Kafka**: Distributed event streaming platform for real-time messaging
 
 ## Architecture
 
@@ -28,12 +35,33 @@ This project implements a microservices-based e-commerce system with the followi
                     │   Service   │
                     └──────┬──────┘
                            │
-         ┌─────────────────┴─────────────────┐
-         │                │                 │
-   ┌─────▼─────┐   ┌──────▼─────┐    ┌─────▼─────┐
-   │   Order   │   │  Product   │    │  Message  │
-   │  Service  │   │  Service   │    │  Service  │
-   └───────────┘   └────────────┘    └───────────┘
+       ┌───────────────────┼───────────────────┐
+       │                   │                   │
+ ┌─────▼─────┐       ┌─────▼─────┐       ┌─────▼─────┐
+ │   Auth    │       │   User    │       │  Order    │
+ │  Service  │       │  Service  │       │  Service  │
+ └───────────┘       └───────────┘       └───────────┘
+       │                                       │
+       │                                       │
+       │                                  ┌────▼────┐
+       │                                  │ Product │
+       │                                  │ Service │
+       │                                  └─────────┘
+       │                                       │
+       │                                  ┌────▼────┐
+       │                                  │ Message │
+       │                                  │ Service │
+       │                                  └─────────┘
+       │
+ ┌─────▼──────┐
+ │    MinIO   │
+ │  Storage   │
+ └────────────┘
+       │
+ ┌─────▼──────┐
+ │   Kafka    │
+ │ Messaging  │
+ └────────────┘
 ```
 
 ## Technical Stack
@@ -42,20 +70,20 @@ This project implements a microservices-based e-commerce system with the followi
 - Java 21
 - Spring Boot 3.4.1
 - Spring Cloud
-- Spring Security with Keycloak
+- Spring Security (Custom Auth Service)
 - PostgreSQL
 - Redis
 - Apache Kafka
-- RabbitMQ
+- MinIO (Object Storage)
 - Docker & Docker Compose
 
 ### Infrastructure
 - Service Discovery: Netflix Eureka
 - API Gateway: Spring Cloud Gateway
-- Authentication: Keycloak (Port: 7080)
+- Authentication: Custom Auth Service
 - Cache: Redis (Port: 6379)
-- Message Broker: RabbitMQ (Ports: 5672, 15672)
 - Database: PostgreSQL (Port: 5432)
+- Storage: MinIO (Port: 9001)
 
 ## Getting Started
 
@@ -79,7 +107,18 @@ cd docker-compose/default
 docker-compose up -d
 ```
 
-### Deployment Options
+## Frontend
+Kasyus also includes a frontend built with React. You can find it here: [Kasyus Frontend](https://github.com/mehmetgencv/kasyus-fe)
+
+To run the frontend locally:
+```bash
+git clone https://github.com/mehmetgencv/kasyus-fe.git
+cd kasyus-fe
+npm install
+npm start
+```
+
+## Deployment Options
 
 ### Kubernetes Deployment
 
@@ -103,14 +142,12 @@ kubectl apply -f 2_configmaps.yaml
 
 - API Gateway: http://localhost:8072
 - Discovery Service Dashboard: http://localhost:8761
-- Keycloak Admin Console: http://localhost:7080
-- RabbitMQ Management UI: http://localhost:15672
+- MinIO Console: http://localhost:9001
 
 ## Authentication and API Usage
 
 For detailed instructions on setting up authentication and using the APIs, please refer to our [Usage Guide](public/kasyus-usage.md). The guide covers:
 
-- Setting up Keycloak authentication
 - Creating service accounts and users
 - Assigning roles and permissions
 - Making authenticated API requests
@@ -118,53 +155,16 @@ For detailed instructions on setting up authentication and using the APIs, pleas
 
 ### Authentication Setup
 
-1. Access Keycloak Admin Console:
-   - URL: http://localhost:7080
-   - Username: admin
-   - Password: admin
+Users can register via the Auth Service:
 
-2. Create a New Realm:
-   - Click "Create Realm"
-   - Name it `kasyus`
-   - Click "Create"
-
-3. Create a Client:
-   - Go to "Clients" → "Create client"
-   - Client ID: `kasyus-client`
-   - Client Protocol: `openid-connect`
-   - Click "Next"
-   - Valid redirect URIs: `http://localhost:8072/*`
-   - Web Origins: `http://localhost:8072`
-   - Click "Save"
-
-4. Create a User:
-   - Go to "Users" → "Add user"
-   - Username: Enter desired username
-   - Email: Enter email
-   - Click "Create"
-   - Go to "Credentials" tab
-   - Set password and disable "Temporary" option
-   - Click "Set Password"
-
-5. Assign Roles:
-   - Go to "Roles" → "Create role"
-   - Create roles: `ROLE_USER`, `ROLE_ADMIN`
-   - Go to "Users" → Select your user
-   - Go to "Role Mapping"
-   - Assign desired roles
-
-### Making Authenticated Requests
-
-To make requests to the API, you need to:
-
-1. Get an access token:
-```bash
-curl -X POST http://localhost:7080/realms/kasyus/protocol/openid-connect/token \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'client_id=kasyus-client' \
-  -d 'grant_type=password' \
-  -d 'username=YOUR_USERNAME' \
-  -d 'password=YOUR_PASSWORD'
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "securepassword",
+  "role": "USER"
+}
 ```
 
 2. Use the token in your requests:
@@ -173,14 +173,14 @@ curl -X GET http://localhost:8072/api/v1/products \
   -H 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
-### Database Configuration
+## Database Configuration
 
 The PostgreSQL instance is configured with:
 - Username: kasyus
 - Password: kasyus123
 - Databases: kasyus_products, kasyus_orders
 
-### Monitoring
+## Monitoring
 
 Each service exposes the following actuator endpoints:
 - Health: `/actuator/health`
@@ -193,30 +193,13 @@ For detailed setup and configuration of each service, please refer to their resp
 
 - [API Gateway](api-gateway/README.md)
 - [Discovery Service](discovery-service/README.md)
+- [Auth Service](auth-service/README.md)
+- [User Service](user-service/README.md)
 - [Order Service](order-service/README.md)
 - [Product Service](product-service/README.md)
 - [Message Service](message/README.md)
 
-## Development
-
-### Building Services Locally
-
-Each service can be built using Maven:
-
-```bash
-mvn clean install
-```
-
-### Running Services Locally
-
-To run a service locally:
-
-```bash
-mvn spring-boot:run
-```
-
-Note: When running services locally, ensure the Discovery Service is running first.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
