@@ -31,7 +31,16 @@ public class SecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     private static final String AUTH_SERVICE_VALIDATE_URL =  "/api/v1/auth/validate";
-
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/auth-service/**", "/actuator/**", "/swagger-ui/**",
+            "/v3/api-docs/**", "/webjars/**", "/favicon.ico"
+    );
+    private static final List<String> ADMIN_REQUIRED_SERVICE_PREFIXES = List.of(
+            "/product-service/api/v1"
+    );
+    private static final List<String> SELLER_REQUIRED_SERVICE_PREFIXES = List.of(
+            "/product-service/api/v1"
+    );
     private final WebClient webClient;
 
     public SecurityConfig(WebClient webClient) {
@@ -44,6 +53,19 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth-service/**").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-service/api/v1/products/**").permitAll()
+                        //.pathMatchers("/product-service/api/v1/products/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-service/api/v1/categories/**").permitAll()
+                        .pathMatchers(HttpMethod.POST,
+                                SELLER_REQUIRED_SERVICE_PREFIXES.stream()
+                                        .map(prefix -> prefix + "/**")
+                                        .toArray(String[]::new)).hasAnyRole("ADMIN", "SELLER")
+                        .pathMatchers(HttpMethod.PUT,
+                                "/product-service/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
+                        .pathMatchers(HttpMethod.DELETE,
+                                ADMIN_REQUIRED_SERVICE_PREFIXES.stream()
+                                        .map(prefix -> prefix + "/**")
+                                        .toArray(String[]::new)).hasAnyRole("ADMIN", "SELLER")
                         .pathMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**", "/favicon.ico").permitAll()
                         .anyExchange().authenticated()
                 )
@@ -67,9 +89,19 @@ public class SecurityConfig {
             ServerHttpRequest request = exchange.getRequest();
             String path = request.getURI().getPath();
 
-            if (request.getMethod() == HttpMethod.OPTIONS) {
+            HttpMethod method = request.getMethod();
+
+            if (method == HttpMethod.OPTIONS) {
                 return chain.filter(exchange);
             }
+
+            if (method == HttpMethod.GET &&
+                    (path.startsWith("/product-service/api/v1/products") ||
+                            path.startsWith("/product-service/api/v1/categories"))) {
+                logger.info("GET request for path {} is permitted, skipping authentication", path);
+                return chain.filter(exchange);
+            }
+
             if (path.startsWith("/auth-service") ||
                     path.startsWith("/actuator") ||
                     path.startsWith("/v3/api-docs") ||
@@ -95,11 +127,19 @@ public class SecurityConfig {
                     .flatMap(validationResponse -> {
                         logger.info("Token validated, userId: {}", validationResponse.userId());
                         if (!validationResponse.valid()) {
-                            return Mono.error(new RuntimeException("Token geçersiz"));
+                            return Mono.error(new RuntimeException("Token is not valid"));
                         }
                         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(validationResponse.roles());
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(validationResponse.email(), null, authorities);
+                        if ((method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.DELETE) &&
+                                SELLER_REQUIRED_SERVICE_PREFIXES.stream().anyMatch(path::startsWith)) {
+                            if (!validationResponse.roles().contains("ROLE_ADMIN") &&
+                                    !validationResponse.roles().contains("ROLE_SELLER")) {
+                                return Mono.error(new RuntimeException("You are not authorized to perform this action"));
+                            }
+                        }
+
                         return chain.filter(exchange.mutate()
                                         .request(exchange.getRequest().mutate()
                                                 .header("X-User-Email", validationResponse.email())
