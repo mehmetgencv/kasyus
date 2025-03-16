@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: "cart-service"
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kasyus_carts}
+    username: ${SPRING_DATASOURCE_USERNAME:kasyus}
+    password: ${SPRING_DATASOURCE_PASSWORD:kasyus123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
+info:
+  app:
+    name: "cart-service"
+    description: "Kasyus Cart Service Application"
+    version: "1.0.0"
+
+logging:
+  level:
+    com:
+      kasyus:
+        cartservice: DEBUG
+
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
+server:
+  port: 8081
+
