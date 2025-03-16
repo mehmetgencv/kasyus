@@ -1,5 +1,6 @@
 package com.kasyus.userservice.model;
 
+import com.kasyus.userservice.model.enums.UserRole;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -40,16 +41,22 @@ public class UserProfile extends BaseEntity {
     @Column(name = "loyalty_points")
     private Integer loyaltyPoints;
 
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
 
     // Default constructor for JPA
     protected UserProfile() {}
 
     // Constructor for event handling
-    public UserProfile(User user, String firstName, String lastName, String email) {
+    public UserProfile(User user, String firstName, String lastName, String email,
+                       UserRole role) {
         this.user = user;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.role = role;
+
     }
 
     // Full constructor
@@ -67,6 +74,13 @@ public class UserProfile extends BaseEntity {
         this.loyaltyPoints = loyaltyPoints;
     }
 
+    public UserProfile(User user, String firstName, String lastName, String email) {
+        this.user = user;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
     // Getters
     public UUID getId() { return id; }
     public User getUser() { return user; }
@@ -77,6 +91,7 @@ public class UserProfile extends BaseEntity {
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public String getCustomerSegment() { return customerSegment; }
     public Integer getLoyaltyPoints() { return loyaltyPoints; }
+    public UserRole getRole() { return role; }
 
     // Setters
     public void setId(UUID id) { this.id = id; }
@@ -88,4 +103,5 @@ public class UserProfile extends BaseEntity {
     public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public void setCustomerSegment(String customerSegment) { this.customerSegment = customerSegment; }
     public void setLoyaltyPoints(Integer loyaltyPoints) { this.loyaltyPoints = loyaltyPoints; }
+    public void setRole(UserRole role) { this.role = role; }
 }

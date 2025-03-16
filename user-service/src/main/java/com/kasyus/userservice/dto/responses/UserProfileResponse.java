@@ -12,6 +12,7 @@ public record UserProfileResponse(
         LocalDate dateOfBirth,
         String customerSegment,
         Integer loyaltyPoints,
+        String role,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String createdBy,

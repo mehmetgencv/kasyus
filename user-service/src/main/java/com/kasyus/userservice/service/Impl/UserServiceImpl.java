@@ -41,7 +41,9 @@ public class UserServiceImpl implements UserService {
         User user = getUserEntity(userId);
         UserProfile profile = user.getProfile();
         if (profile == null) {
-            profile = new UserProfile(user, request.firstName(), request.lastName(), request.email());
+            profile = new UserProfile(user, request.firstName(),
+                    request.lastName(),
+                    request.email());
             user.setProfile(profile);
         } else {
             profile.setFirstName(request.firstName());
