@@ -1,5 +1,6 @@
 package com.kasyus.userservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -15,14 +16,15 @@ public class WishlistItem extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "product_id", nullable = false)
-    private String productId; // Ürün ID’si (örneğin, product-service’ten gelen bir kimlik)
+    private String productId;
 
     @Column(name = "product_name")
-    private String productName; // Opsiyonel: Ürün adı, snapshot olarak saklanabilir
+    private String productName;
 
     // Default constructor for JPA
     public WishlistItem() {}
