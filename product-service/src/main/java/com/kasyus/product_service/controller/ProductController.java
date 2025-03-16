@@ -2,6 +2,7 @@ package com.kasyus.product_service.controller;
 
 import com.kasyus.product_service.dto.ProductDto;
 import com.kasyus.product_service.general.RestResponse;
+import com.kasyus.product_service.requests.PriceUpdateRequest;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 import com.kasyus.product_service.service.ProductService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -70,6 +72,13 @@ public class ProductController {
         ProductDto productDto = productService.updateProduct(id, request);
         return ResponseEntity.ok(RestResponse.of(productDto, "Product updated successfully"));
     }
+
+    @PatchMapping("/{id}/price")
+    public ResponseEntity<RestResponse<Void>> updateProductPrice(@PathVariable Long id, @RequestBody PriceUpdateRequest request) {
+        productService.updateProductPrice(id, request);
+        return ResponseEntity.ok(RestResponse.of(null, "Product price updated successfully"));
+    }
+
 
 
     @DeleteMapping("/{id}")

@@ -1,21 +1,25 @@
 package com.kasyus.product_service.service.Impl;
 
+import com.kasyus.product_service.dto.PriceUpdatedEvent;
 import com.kasyus.product_service.dto.ProductDto;
 import com.kasyus.product_service.exception.ProductNotFoundException;
 import com.kasyus.product_service.mapper.ProductMapper;
 import com.kasyus.product_service.model.Product;
 import com.kasyus.product_service.model.ProductImage;
 import com.kasyus.product_service.repository.ProductRepository;
+import com.kasyus.product_service.requests.PriceUpdateRequest;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 import com.kasyus.product_service.service.MinioService;
 import com.kasyus.product_service.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -24,11 +28,13 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final MinioService minioService;
     private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public ProductServiceImpl(ProductRepository productRepository, MinioService minioService) {
+    public ProductServiceImpl(ProductRepository productRepository, MinioService minioService, KafkaTemplate<String, Object> kafkaTemplate) {
 
         this.productRepository = productRepository;
         this.minioService = minioService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -106,6 +112,17 @@ public class ProductServiceImpl implements ProductService {
         Product updateProduct = ProductMapper.INSTANCE.updateProductFields(product, request);
         Product savedProduct = productRepository.save(updateProduct);
         return ProductMapper.INSTANCE.toProductDto(savedProduct);
+    }
+
+    public void updateProductPrice(Long productId, PriceUpdateRequest request) {
+        BigDecimal newPrice = request.price();
+        updatePriceInDatabase(productId, newPrice);
+        PriceUpdatedEvent event = new PriceUpdatedEvent(
+                productId,
+                newPrice,
+                ZonedDateTime.now().toString()
+        );
+        kafkaTemplate.send("product-price-updated", String.valueOf(productId), event);
     }
 
     @Override
@@ -226,6 +243,10 @@ public class ProductServiceImpl implements ProductService {
         log.info("New cover image set automatically: {}", newCoverImage.getImageUrl());
     }
 
-
+    private void updatePriceInDatabase(Long productId, BigDecimal newPrice) {
+        Product product = findProductById(productId);
+        product.setPrice(newPrice);
+        productRepository.save(product);
+    }
 
 } 

@@ -1,6 +1,7 @@
 package com.kasyus.product_service.service;
 
 import com.kasyus.product_service.dto.ProductDto;
+import com.kasyus.product_service.requests.PriceUpdateRequest;
 import com.kasyus.product_service.requests.ProductCreateRequest;
 import com.kasyus.product_service.requests.ProductUpdateRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ public interface ProductService {
     List<ProductDto> searchProductsByName(String name);
     List<ProductDto> getAllProducts();
     ProductDto updateProduct(Long id, ProductUpdateRequest request);
+    void updateProductPrice(Long productId, PriceUpdateRequest request);
     void deleteProduct(Long id);
 
     ProductDto updateProductImage(Long productId, Long imageId, MultipartFile newImage, Boolean isCoverImage);
