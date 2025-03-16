@@ -8,7 +8,6 @@ import com.kasyus.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +42,12 @@ public class ProductController {
     public ResponseEntity<RestResponse<ProductDto>> getProductById(@PathVariable Long id) {
         ProductDto productDto = productService.getProductById(id);
         return ResponseEntity.ok(RestResponse.of(productDto, "Product retrieved successfully"));
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<RestResponse<List<ProductDto>>> getProductsByCategoryId(@PathVariable Long categoryId) {
+        List<ProductDto> productDtos = productService.getProductsByCategoryId(categoryId);
+        return ResponseEntity.ok(RestResponse.of(productDtos, "Products retrieved successfully"));
     }
 
     @GetMapping("/sku/{sku}")

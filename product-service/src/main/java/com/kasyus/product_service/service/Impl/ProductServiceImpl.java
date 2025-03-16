@@ -148,6 +148,14 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         return ProductMapper.INSTANCE.toProductDto(product);
     }
+
+    @Override
+    public List<ProductDto> getProductsByCategoryId(Long categoryId) {
+        List<Product> products = productRepository.findByCategoryId(categoryId);
+        return ProductMapper.INSTANCE.toProductDtoList(products);
+    }
+
+
     @Override
     public ProductDto setCoverImage(Long productId, Long imageId) {
         Product product = findProductById(productId);

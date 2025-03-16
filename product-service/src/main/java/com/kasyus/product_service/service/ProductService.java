@@ -24,4 +24,6 @@ public interface ProductService {
     ProductDto updateProductImage(Long productId, Long imageId, MultipartFile newImage, Boolean isCoverImage);
 
     ProductDto deleteProductImage(Long productId, Long imageId);
+
+    List<ProductDto> getProductsByCategoryId(Long categoryId);
 }
