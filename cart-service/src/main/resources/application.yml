@@ -15,6 +15,18 @@ spring:
     hibernate:
       ddl-auto: update
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: cart-service-price-update-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.kasyus.*
+    listener:
+      concurrency: 3
+
 
 
 management:
@@ -66,5 +78,5 @@ eureka:
     serviceUrl:
       defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
 server:
-  port: 8081
+  port: 8083
 

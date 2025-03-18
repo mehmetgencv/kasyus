@@ -1,4 +1,6 @@
 package com.kasyus.cartservice.dto.requests;
 
-public record CartCreateRequest() {
+import java.math.BigDecimal;
+
+public record CartCreateRequest(Long productId, int quantity, BigDecimal price) {
 }
