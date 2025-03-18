@@ -85,6 +85,19 @@ public class ApiGatewayApplication {
 								"/v3/api-docs/product-service",
 								"/v3/api-docs"))
 						.uri("lb://product-service"))
+
+				.route("cart-service", p -> p
+						.path("/cart-service/api/v1/**")
+						.filters(f -> f
+								.stripPrefix(1)
+								.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+						.uri("lb://cart-service"))
+				.route("cart-service-swagger", p -> p
+						.path("/v3/api-docs/cart-service")
+						.filters(f -> f.rewritePath(
+								"/v3/api-docs/cart-service",
+								"/v3/api-docs"))
+						.uri("lb://cart-service"))
 				.build();
 	}
 

@@ -26,20 +26,11 @@ spring:
           predicates:
             - Path=/user-service/**
 
-#      globalcors:
-#        add-to-simple-url-handler-mapping: true
-#        corsConfigurations:
-#          '[/**]':
-#            allowedOrigins: "*"
-#            allowedMethods:
-#              - GET
-#              - POST
-#              - PUT
-#              - DELETE
-#              - PATCH
-#              - OPTIONS
-#            allowedHeaders: "*"
-#            exposedHeaders: "*"
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+            - Path=/cart-service/**
+
   data:
     redis:
       connect-timeout: 2s
@@ -69,6 +60,8 @@ springdoc:
         name: User Service API
       - url: /v3/api-docs/auth-service
         name: Auth Service API
+      - url: /v3/api-docs/cart-service
+        name: Cart Service API
 
 management:
   endpoints:
