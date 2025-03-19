@@ -5,18 +5,20 @@ This guide explains how to deploy and manage Kasyus services in Kubernetes. For 
 ## Directory Structure
 ```
 kubernetes/
-├── 1_          #  authentication service
-├── 2_configmaps.yaml       # Common configuration
-├── 3_eurekaserver.yml      # Service discovery
-├── 4_products.yml          # Product service
-├── 5_orders.yml           # Order service
-├── 6_gateway.yml          # API Gateway
-├── 7_message.yml          # Message service
-├── 8_redis.yml            # Redis cache
-├── 9_loki.yml            # Logging infrastructure
-├── 10_minio.yml          # Object storage
-├── 11_postgres.yml        # Database
-└── 12_alloy.yml          # Monitoring
+├── 1_configmaps.yaml       # Common configuration          
+├── 2_eurekaserver.yml      # Service discovery
+├── 3_gateway.yml          # API Gateway
+├── 4_auth.yml           #  authentication service
+├── 5_users.yml           # Users service
+├── 6_products.yml          # Product service
+├── 7_carts.yml          # Cart service
+├── 8_orders.yml          # Order service
+├── 9_message.yml          # Message service
+├── 31_redis.yml            # Redis cache
+├── 32_minio.yml          # Object storage
+├── 33_postgres.yml        # Database
+├── 34_alloy.yml          # Monitoring
+└── 35_loki.yml            # Logging infrastructure
 
 ```
 
@@ -48,24 +50,24 @@ Deploy all services in the correct order:
 
 ```bash
 # 1. Create ConfigMaps and Secrets first
-kubectl apply -f 2_configmaps.yaml
+kubectl apply -f 1_configmaps.yaml
 
 # 2. Deploy Infrastructure Services
 kubectl apply -f 1_keycloak.yml
-kubectl apply -f 3_eurekaserver.yml
-kubectl apply -f 11_postgres.yml
-kubectl apply -f 8_redis.yml
-kubectl apply -f 10_minio.yml
+kubectl apply -f 2_eurekaserver.yml
+kubectl apply -f 33_postgres.yml
+kubectl apply -f 31_redis.yml
+kubectl apply -f 32_minio.yml
 
 # 3. Deploy Monitoring Services
-kubectl apply -f 9_loki.yml
-kubectl apply -f 12_alloy.yml
+kubectl apply -f 35_loki.yml
+kubectl apply -f 34_alloy.yml
 
 # 4. Deploy Application Services
-kubectl apply -f 4_products.yml
-kubectl apply -f 5_orders.yml
-kubectl apply -f 6_gateway.yml
-kubectl apply -f 7_message.yml
+kubectl apply -f 6_products.yml
+kubectl apply -f 8_orders.yml
+kubectl apply -f 3_gateway.yml
+kubectl apply -f 9_message.yml
 ```
 
 ### Deploy Individual Service
@@ -123,18 +125,18 @@ kubectl scale deployment/order-service --replicas=2
 ### Remove All Resources
 ```bash
 # Delete all resources in reverse order
-kubectl delete -f 7_message.yml
-kubectl delete -f 6_gateway.yml
-kubectl delete -f 5_orders.yml
-kubectl delete -f 4_products.yml
-kubectl delete -f 12_alloy.yml
-kubectl delete -f 9_loki.yml
-kubectl delete -f 10_minio.yml
-kubectl delete -f 8_redis.yml
-kubectl delete -f 11_postgres.yml
-kubectl delete -f 3_eurekaserver.yml
+kubectl delete -f 9_message.yml
+kubectl delete -f 3_gateway.yml
+kubectl delete -f 8_orders.yml
+kubectl delete -f 6_products.yml
+kubectl delete -f 34_alloy.yml
+kubectl delete -f 35_loki.yml
+kubectl delete -f 32_minio.yml
+kubectl delete -f 31_redis.yml
+kubectl delete -f 33_postgres.yml
+kubectl delete -f 2_eurekaserver.yml
 kubectl delete -f 1_keycloak.yml
-kubectl delete -f 2_configmaps.yaml
+kubectl delete -f 1_configmaps.yaml
 ```
 
 ### Remove Single Service

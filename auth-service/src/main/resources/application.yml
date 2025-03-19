@@ -63,6 +63,6 @@ eureka:
     serviceUrl:
       defaultZone: http://${DISCOVERY_SERVICE_HOSTNAME:localhost}:${DISCOVERY_SERVICE_PORT:8761}/eureka/
 server:
-  port: 8088
+  port: 8084
 
 

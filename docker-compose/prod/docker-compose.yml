@@ -1,26 +1,6 @@
 name: kasyus-prod
 
 services:
-  message:
-    build:
-      context: ../../message
-      dockerfile: Dockerfile
-    container_name: message
-    ports:
-      - "9010:9010"
-    environment:
-      - OTEL_SERVICE_NAME=message
-    healthcheck:
-      test: "curl --fail --silent localhost:9010/actuator/health/readiness | grep UP || exit 1"
-      interval: 20s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
-    networks:
-      - kasyus-network
-    extends:
-      file: common-config.yml
-      service: microservice-eureka-config
 
 
   discovery-service:
@@ -77,6 +57,66 @@ services:
       file: common-config.yml
       service: microservice-eureka-config
 
+  auth-service:
+    build:
+      context: ../../auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      - SERVER_PORT=8084
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_auth
+      - SPRING_DATASOURCE_USERNAME=kasyus
+      - SPRING_DATASOURCE_PASSWORD=kasyus123
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
+      - SPRING_DATA_REDIS_HOST=redis
+      - OTEL_SERVICE_NAME=auth-service
+    networks:
+      - kasyus-network
+    healthcheck:
+      test: "curl --fail --silent auth-service:8084/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
+
+  user-service:
+    build:
+      context: ../../user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      - SERVER_PORT=8085
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_users
+      - SPRING_DATASOURCE_USERNAME=kasyus
+      - SPRING_DATASOURCE_PASSWORD=kasyus123
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
+      - SPRING_REDIS_HOST=redis
+      - OTEL_SERVICE_NAME=user-service
+    networks:
+      - kasyus-network
+    healthcheck:
+      test: "curl --fail --silent user-service:8085/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
+
+
+
   product-service:
     build:
       context: ../../product-service
@@ -90,6 +130,7 @@ services:
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
       - SPRING_REDIS_HOST=redis
       - OTEL_SERVICE_NAME=product-service
+      - MINIO_URL=http:/minio:9000
     networks:
       - kasyus-network
     healthcheck:
@@ -106,6 +147,35 @@ services:
       file: common-config.yml
       service: microservice-eureka-config
 
+
+  cart-service:
+    build:
+      context: ../../cart-service
+      dockerfile: Dockerfile
+    container_name: cart-service
+    environment:
+      - SERVER_PORT=8087
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kasyus_carts
+      - SPRING_DATASOURCE_USERNAME=kasyus
+      - SPRING_DATASOURCE_PASSWORD=kasyus123
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:29092
+      - SPRING_REDIS_HOST=redis
+      - OTEL_SERVICE_NAME=product-service
+    networks:
+      - kasyus-network
+    healthcheck:
+      test: "curl --fail --silent cart-service:8087/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
 
   order-service:
     build:
@@ -135,6 +205,28 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
+
+
+  message:
+    build:
+      context: ../../message
+      dockerfile: Dockerfile
+    container_name: message
+    ports:
+      - "9010:9010"
+    environment:
+      - OTEL_SERVICE_NAME=message
+    healthcheck:
+      test: "curl --fail --silent localhost:9010/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - kasyus-network
     extends:
       file: common-config.yml
       service: microservice-eureka-config

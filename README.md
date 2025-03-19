@@ -25,44 +25,11 @@ This project implements a microservices-based e-commerce system with the followi
 
 ## Architecture
 
-```
-┌─────────────┐     ┌─────────────┐
-│   Client    │────▶│ API Gateway │
-└─────────────┘     └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Discovery  │
-                    │   Service   │
-                    └──────┬──────┘
-                           │
-       ┌───────────────────┼───────────────────┐
-       │                   │                   │
- ┌─────▼─────┐       ┌─────▼─────┐       ┌─────▼─────┐
- │   Auth    │       │   User    │       │  Order    │
- │  Service  │       │  Service  │       │  Service  │
- └───────────┘       └───────────┘       └───────────┘
-       │                                       │
-       │                                       │
-       │                                  ┌────▼────┐
-       │                                  │ Product │
-       │                                  │ Service │
-       │                                  └─────────┘
-       │                                       │
-       │                                  ┌────▼────┐
-       │                                  │ Message │
-       │                                  │ Service │
-       │                                  └─────────┘
-       │
- ┌─────▼──────┐
- │    MinIO   │
- │  Storage   │
- └────────────┘
-       │
- ┌─────▼──────┐
- │   Kafka    │
- │ Messaging  │
- └────────────┘
-```
+
+<p align="center">
+  <img src="public/diagram/KasyusArchitectureDiagram.png" width="400">
+</p>
+
 
 ## Technical Stack
 
@@ -134,7 +101,7 @@ Key features of our Kubernetes deployment:
 To get started with Kubernetes deployment:
 ```bash
 cd kubernetes
-kubectl apply -f 2_configmaps.yaml
+kubectl apply -f 1_configmaps.yaml
 # Follow the deployment guide for complete instructions
 ```
 
