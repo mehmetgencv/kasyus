@@ -1,269 +1,125 @@
-# User Service
+# 👤 Kasyus User Service
 
-Extended user management service that complements Keycloak for e-commerce specific requirements.
+The **User Service** is responsible for managing user profiles, addresses, payment methods, and wishlist items in the **Kasyus E-Commerce Platform**. It also listens to user registration events from the Auth Service via Kafka and persists newly registered users.
 
-## Why User Service with Keycloak?
+---
 
-While Keycloak handles:
-- Authentication
-- Basic user information
-- Role-based authorization
-- SSO and OAuth2/OIDC
+## 🚀 Features
 
-User Service extends functionality with:
-1. **E-commerce Specific User Data**:
-   - Shipping addresses
-   - Billing information
-   - Shopping preferences
-   - Wishlist management
-   - Order history
+- 👥 User profile management (view/update)
+- 🏠 Address CRUD operations
+- 💳 Payment method management
+- ❤️ Wishlist item handling
+- 📩 Kafka event consumer for `USER_REGISTERED` events
+- ☁️ Stateless with user context passed via `X-User-Id` header
 
-2. **Advanced User Profiles**:
-   - Customer segments
-   - Shopping behavior analytics
-   - Personalization preferences
-   - Customer loyalty programs
-   - User activity tracking
+---
 
-3. **Business Logic**:
-   - Custom validation rules
-   - User verification workflows
-   - Fraud detection integration
-   - Customer scoring
-   - Recommendation data
+## 🧾 API Endpoints
 
-## Architecture
+### 👤 Profile
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Client    │────▶│ API Gateway │────▶│  Keycloak   │
-└─────────────┘     └──────┬──────┘     └──────┬──────┘
-                           │                    │
-                    ┌──────▼──────┐      ┌─────▼─────┐
-                    │    User     │◀─────│  Keycloak │
-                    │   Service   │      │  Webhook  │
-                    └──────┬──────┘      └───────────┘
-                           │
-                    ┌──────▼──────┐
-                    │  User Data  │
-                    │  Database   │
-                    └─────────────┘
-```
+| Method | Endpoint               | Description               |
+|--------|------------------------|---------------------------|
+| GET    | `/api/v1/users/me`     | Get current user's profile |
+| PUT    | `/api/v1/users/me/profile` | Update user profile    |
 
-## Database Schema
+### 🏠 Address Management
 
-```sql
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    keycloak_id VARCHAR(255) UNIQUE NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
+| Method | Endpoint                         | Description              |
+|--------|----------------------------------|--------------------------|
+| POST   | `/api/v1/users/me/addresses`     | Add new address          |
+| GET    | `/api/v1/users/me/addresses`     | List all addresses       |
+| PUT    | `/api/v1/users/me/addresses/{id}`| Update address           |
+| DELETE | `/api/v1/users/me/addresses/{id}`| Delete address           |
 
-CREATE TABLE user_profiles (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    phone_number VARCHAR(20),
-    date_of_birth DATE,
-    preferred_language VARCHAR(10),
-    marketing_preferences JSONB,
-    customer_segment VARCHAR(50),
-    loyalty_points INTEGER DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
+### 💳 Payment Methods
 
-CREATE TABLE addresses (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    type VARCHAR(20), -- SHIPPING, BILLING
-    is_default BOOLEAN DEFAULT false,
-    street_address TEXT,
-    city VARCHAR(100),
-    state VARCHAR(100),
-    postal_code VARCHAR(20),
-    country VARCHAR(100),
-    phone VARCHAR(20),
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
+| Method | Endpoint                                | Description                |
+|--------|-----------------------------------------|----------------------------|
+| POST   | `/api/v1/users/me/payment-methods`      | Add new payment method     |
+| GET    | `/api/v1/users/me/payment-methods`      | List payment methods       |
+| PUT    | `/api/v1/users/me/payment-methods/{id}` | Update payment method      |
+| DELETE | `/api/v1/users/me/payment-methods/{id}` | Delete payment method      |
 
-CREATE TABLE payment_methods (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    type VARCHAR(50),
-    is_default BOOLEAN DEFAULT false,
-    provider VARCHAR(50),
-    token VARCHAR(255),
-    last_four VARCHAR(4),
-    expiry_date DATE,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
+### ❤️ Wishlist
 
-CREATE TABLE wishlists (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    product_id UUID,
-    added_at TIMESTAMP NOT NULL
-);
-```
+| Method | Endpoint                                      | Description              |
+|--------|-----------------------------------------------|--------------------------|
+| POST   | `/api/v1/users/me/wishlist-items`            | Add item to wishlist     |
+| GET    | `/api/v1/users/me/wishlist-items`            | Get all wishlist items   |
+| DELETE | `/api/v1/users/me/wishlist-items/{itemId}`   | Remove item from wishlist|
 
-## API Endpoints
+---
 
-### User Profile Management
-```
-GET    /api/v1/users/{id}/profile
-POST   /api/v1/users/{id}/profile
-PUT    /api/v1/users/{id}/profile
-DELETE /api/v1/users/{id}/profile
-```
+## 🧪 Example Request – Update Profile
 
-### Address Management
-```
-GET    /api/v1/users/{id}/addresses
-POST   /api/v1/users/{id}/addresses
-PUT    /api/v1/users/{id}/addresses/{addressId}
-DELETE /api/v1/users/{id}/addresses/{addressId}
-PATCH  /api/v1/users/{id}/addresses/{addressId}/make-default
-```
+```http
+PUT /api/v1/users/me/profile
+X-User-Id: 123456
+Content-Type: application/json
 
-### Payment Methods
-```
-GET    /api/v1/users/{id}/payment-methods
-POST   /api/v1/users/{id}/payment-methods
-DELETE /api/v1/users/{id}/payment-methods/{methodId}
-PATCH  /api/v1/users/{id}/payment-methods/{methodId}/make-default
-```
-
-### Wishlist Management
-```
-GET    /api/v1/users/{id}/wishlist
-POST   /api/v1/users/{id}/wishlist
-DELETE /api/v1/users/{id}/wishlist/{productId}
-```
-
-## Keycloak Integration
-
-### User Creation Flow
-1. User registers through Keycloak
-2. Keycloak webhook triggers User Service
-3. User Service creates extended profile
-4. Return success/failure to Keycloak
-
-```java
-@PostMapping("/webhook/user-created")
-public ResponseEntity<Void> handleUserCreated(@RequestBody KeycloakUserEvent event) {
-    userService.createUserProfile(
-        UserProfile.builder()
-            .keycloakId(event.getUserId())
-            .email(event.getEmail())
-            .build()
-    );
-    return ResponseEntity.ok().build();
+{
+  "firstName": "Alice",
+  "lastName": "Doe",
+  "email": "alice@example.com",
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1995-04-15",
+  "customerSegment": "Premium",
+  "loyaltyPoints": 150
 }
 ```
 
-### Authentication Flow
-1. Client authenticates with Keycloak
-2. Receives JWT token
-3. Uses token for User Service requests
-4. User Service validates token with Keycloak
+---
 
-```java
-@Configuration
-public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.oauth2ResourceServer()
-            .jwt()
-            .jwtAuthenticationConverter(jwtAuthenticationConverter());
-        return http.build();
-    }
+## 📩 Kafka Integration
+
+The service listens to the `auth-events` topic for `USER_REGISTERED` events and persists the user data if not already present.
+
+**Sample Event:**
+```json
+{
+  "eventType": "USER_REGISTERED",
+  "userId": "123456",
+  "email": "alice@example.com",
+  "firstName": "Alice",
+  "lastName": "Doe",
+  "role": "CUSTOMER",
+  "createdBy": "alice@example.com",
+  "timestamp": "2025-03-21T14:00:00"
 }
 ```
 
-## Event Integration
+---
 
-### Keycloak Events
-- USER_CREATED
-- USER_UPDATED
-- USER_DELETED
-- ROLE_UPDATED
+## 🛠 Tech Stack
 
-### User Service Events
-- PROFILE_UPDATED
-- ADDRESS_ADDED
-- PAYMENT_METHOD_ADDED
-- WISHLIST_UPDATED
+- **Java 21**
+- **Spring Boot**
+- **Spring Data JPA**
+- **Kafka** (Event-Driven Communication)
+- **REST API**
+- **Swagger/OpenAPI** (optional)
 
-## Deployment
+---
 
-### Environment Variables
-```yaml
-USER_SERVICE_DB_URL: jdbc:postgresql://localhost:5432/users
-USER_SERVICE_DB_USERNAME: user_service
-USER_SERVICE_DB_PASSWORD: password
-KEYCLOAK_AUTH_SERVER_URL: http://keycloak:8080/auth
-KEYCLOAK_REALM: ecommerce
-KEYCLOAK_CLIENT_ID: user-service
-KEYCLOAK_CLIENT_SECRET: secret
+## 📦 Headers Used
+
+| Header        | Purpose                     |
+|---------------|-----------------------------|
+| `X-User-Id`   | Identifies the current user |
+
+---
+
+## 🧪 Run Locally
+
+### Requirements
+
+- Java 21
+- Maven
+- Kafka (for event consumption)
+- PostgreSQL or H2
+
+```bash
+mvn spring-boot:run
 ```
-
-### Kubernetes Configuration
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: user-service
-spec:
-  replicas: 2
-  template:
-    spec:
-      containers:
-        - name: user-service
-          image: user-service:latest
-          ports:
-            - containerPort: 8080
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: prod
-            - name: KEYCLOAK_AUTH_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: keycloak-config
-                  key: auth-server-url
-```
-
-## Monitoring
-
-### Health Checks
-```
-/actuator/health
-/actuator/info
-/actuator/metrics
-```
-
-### Key Metrics
-- User profile completion rate
-- Address verification success rate
-- Payment method addition success rate
-- API response times
-- Error rates by endpoint
-
-## Security Considerations
-
-1. **Data Protection**:
-   - Encryption at rest
-   - Secure communication
-   - PCI compliance for payment data
-
-2. **Access Control**:
-   - Role-based access
-   - Resource-level permissions
-   - API rate limiting
-
-3. **Audit Logging**:
-   - User activity tracking
-   - Change history
-   - Security events 

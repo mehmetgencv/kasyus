@@ -1,48 +1,89 @@
-# API Gateway Service
+# 🛡️ Kasyus API Gateway
 
-Central entry point for the Kasyus E-Commerce Platform that handles routing and cross-cutting concerns.
+The central entry point for the **Kasyus E-Commerce Platform**, responsible for routing, authentication, authorization, rate limiting, and other cross-cutting concerns across microservices.
 
-## Features
+---
 
-- Dynamic routing to microservices
-- Request rate limiting
-- Circuit breaking
-- Request/response logging
-- Correlation ID propagation
-- Error handling
+## 🚀 Features
 
-## API Routes
+- ✅ **JWT-based Authentication** (via Auth Service)
+- 🔁 **Dynamic Routing** with Spring Cloud Gateway
+- ⚙️ **Role-based Authorization** (ADMIN, SELLER, etc.)
+- 🌐 **CORS Configuration** (for frontend access)
+- ⛔ **Circuit Breaker** Support (Resilience4j)
+- 📊 **Swagger UI Routing** per service
+- 📉 **Rate Limiting** using Redis
+- 📦 **Load-balanced WebClient** for internal service calls
 
-### Product Service Routes
-- All requests to `/api/v1/products/**` are routed to the Product Service
+---
 
-### Order Service Routes
-- All requests to `/api/v1/orders/**` are routed to the Order Service
+## 🗺️ Route Overview
 
-## Running Locally
+| Path Prefix                          | Target Microservice   |
+|--------------------------------------|------------------------|
+| `/auth-service/**`                  | `auth-service`         |
+| `/user-service/**`                  | `user-service`         |
+| `/order-service/api/v1/orders/**`   | `order-service`        |
+| `/product-service/api/v1/**`        | `product-service`      |
+| `/cart-service/api/v1/**`           | `cart-service`         |
+| `/v3/api-docs/**`, `/swagger-ui/**` | Swagger for each service |
 
-1. Ensure the Discovery Service is running
-2. Start the application:
+---
+
+## 🔐 Security & Token Validation
+
+- Each request is inspected for a `Bearer` token in the `Authorization` header.
+- The token is verified by calling `auth-service`'s `/api/v1/auth/validate` endpoint.
+- Upon success, the gateway adds:
+    - `X-User-Id`
+    - `X-User-Email`
+    - `X-User-Roles`
+      headers before forwarding the request.
+- Access to protected routes is limited by user roles (`ROLE_ADMIN`, `ROLE_SELLER`, etc.).
+
+---
+
+## 📦 Running Locally (Java 21)
+
+### Prerequisites
+
+- Java 21
+- Maven
+- Discovery Service (Eureka) running
+
+### Start the API Gateway
+
 ```bash
 mvn spring-boot:run
 ```
 
-## Docker Support
+---
 
-Build the image:
+## 🐳 Docker Support
+
+### Build Docker Image
+
 ```bash
 docker build -t kasyus/api-gateway .
 ```
 
-Run the container:
+### Run the Container
+
 ```bash
-docker run -p 8080:8080 kasyus/api-gateway
+docker run -p 8072:8072 kasyus/api-gateway
 ```
 
-## Monitoring
+---
 
-The service exposes the following actuator endpoints:
-- Health: `/actuator/health`
-- Info: `/actuator/info`
-- Metrics: `/actuator/metrics`
-- Routes: `/actuator/gateway/routes` 
+## 📊 Monitoring Endpoints
+
+The following [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/) endpoints are enabled:
+
+| Endpoint                        | Description                 |
+|----------------------------------|-----------------------------|
+| `/actuator/health`             | Application health check    |
+| `/actuator/info`               | Build & environment info    |
+| `/actuator/metrics`            | Performance metrics         |
+| `/actuator/gateway/routes`     | Defined gateway routes      |
+
+---

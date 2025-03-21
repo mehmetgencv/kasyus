@@ -3,10 +3,10 @@
 </div>
 
 # Kasyus E-Commerce Platform
-A modern, scalable e-commerce platform built with microservices architecture using Spring Cloud and Docker.
+A cloud-native, microservices-based e-commerce platform built with Spring Boot, Spring Cloud, and Docker.
 
 ## What is Kasyus?
-Kasyus is named after **Kasyus (Kassius) Mountain**, also known as **Kel Dağı**, a dormant volcanic mountain in Hatay, Turkey. The mountain has historical significance and is known for its rich biodiversity and ancient ruins, including the St. Barlaam Monastery from the Roman era.
+Kasyus is named after **Kasyus (Kassius) Mountain**, also known as **Kel Dağı**, a dormant volcanic mountain in Hatay, Türkiye. The mountain has historical significance and is known for its rich biodiversity and ancient ruins, including the St. Barlaam Monastery from the Roman era.
 
 ## Overview and Service Documentation
 
@@ -145,7 +145,7 @@ curl -X GET http://localhost:8072/api/v1/products \
 The PostgreSQL instance is configured with:
 - Username: kasyus
 - Password: kasyus123
-- [Databases](docker-compose/prod/init-scripts/init-multiple-dbs.sql).: kasyus_products, kasyus_orders ...
+- [Databases](docker-compose/prod/init-scripts/init-multiple-dbs.sql): kasyus_products, kasyus_orders ...
 
 ## 🚀 Monitoring
 

@@ -1,151 +1,153 @@
-# Product Service
+# 🛍️ Kasyus Product Service
 
-Product catalog and inventory management service for the Kasyus E-Commerce Platform.
+The **Product Service** is responsible for managing products and categories within the Kasyus E-Commerce Platform. It supports full CRUD operations, image management via MinIO, and emits events such as price updates.
 
-## Features
+---
 
-- Product CRUD operations
-- Product search and filtering
-- Category management
-- Stock management
-- Price management
-- SKU tracking
+## 🚀 Features
 
-## API Endpoints
+- 📦 Create, update, delete, and retrieve products
+- 🔎 Filter by category, SKU, or name
+- 🏷️ Price updates with Kafka event publishing (`PriceUpdatedEvent`)
+- 🖼️ Upload, update, and delete product images (stored in **MinIO**)
+- 🏷️ Set cover image for each product
+- 📁 Category management (CRUD operations)
+- 🔐 Role-based access control (via API Gateway)
 
-### Create Product
+---
+
+## 📦 API Endpoints
+
+### 🔧 Products
+
+| Method | Endpoint                        | Description                             |
+|--------|----------------------------------|-----------------------------------------|
+| POST   | `/api/v1/products`              | Create a new product                    |
+| GET    | `/api/v1/products/{id}`         | Get product by ID                       |
+| GET    | `/api/v1/products/sku/{sku}`    | Get product by SKU                      |
+| GET    | `/api/v1/products`              | Get all products                        |
+| GET    | `/api/v1/products/category/{id}`| Get products by category ID             |
+| PUT    | `/api/v1/products/{id}`         | Update product                          |
+| PATCH  | `/api/v1/products/{id}/price`   | Update product price & publish event    |
+| DELETE | `/api/v1/products/{id}`         | Delete product                          |
+
+### 🖼️ Images
+
+| Method | Endpoint                                               | Description                             |
+|--------|---------------------------------------------------------|-----------------------------------------|
+| POST   | `/api/v1/products/{id}/images`                         | Upload multiple images                  |
+| PUT    | `/api/v1/products/{id}/images/{imageId}`              | Update a specific image                 |
+| PATCH  | `/api/v1/products/{id}/images/{imageId}/cover`        | Set specific image as cover             |
+| DELETE | `/api/v1/products/{id}/images/{imageId}`              | Delete a specific image                 |
+
+### 🗂️ Categories
+
+| Method | Endpoint                  | Description            |
+|--------|----------------------------|------------------------|
+| GET    | `/api/v1/categories`      | Get all categories     |
+| GET    | `/api/v1/categories/{id}` | Get category by ID     |
+| POST   | `/api/v1/categories`      | Create category        |
+| PUT    | `/api/v1/categories/{id}` | Update category        |
+| DELETE | `/api/v1/categories/{id}` | Delete category        |
+
+---
+
+## 🧪 Example Requests
+
+### ➕ Create Product
+
 ```http
 POST /api/v1/products
 Content-Type: application/json
 
 {
-  "name": "Sample Product",
-  "description": "Product description",
-  "price": 29.99,
-  "stockQuantity": 100,
-  "category": "Electronics",
-  "sku": "PROD-001"
+  "name": "Gaming Laptop",
+  "description": "High-performance laptop",
+  "price": 1999.99,
+  "categoryId": 1,
+  "productType": "ELECTRONICS",
+  "sellerId": 42,
+  "sku": "GAM-1234"
 }
 ```
 
-### Get Product
-```http
-GET /api/v1/products/{id}
-GET /api/v1/products/sku/{sku}
-GET /api/v1/products/category/{category}
-```
+### 💸 Price Update
 
-### Search Products
 ```http
-GET /api/v1/products/search?name=keyword
-GET /api/v1/products/search?minPrice=10&maxPrice=100
-```
-
-### Update Product
-```http
-PUT /api/v1/products/{id}
+PATCH /api/v1/products/100/price
 Content-Type: application/json
 
 {
-  "name": "Updated Product",
-  "price": 39.99,
-  "stockQuantity": 150
+  "price": 1799.99
 }
 ```
 
-### Update Stock
+➡️ Triggers a `PriceUpdatedEvent` sent via Kafka topic: `product-price-updated`.
+
+---
+
+## 🖼️ Image Upload
+
 ```http
-PATCH /api/v1/products/{id}/stock?quantity=50
+POST /api/v1/products/100/images
+Content-Type: multipart/form-data
+
+images: [file1.jpg, file2.jpg]
+coverImageIndex: 0
 ```
 
-### Delete Product
-```http
-DELETE /api/v1/products/{id}
+Stored securely in **MinIO** bucket.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Java 21**
+- **Spring Boot**
+- **Spring Data JPA**
+- **MinIO** for image storage
+- **Kafka** for asynchronous events
+- **REST API**
+- **Swagger** for documentation
+
+---
+
+## 📤 Events
+
+The service publishes a `PriceUpdatedEvent` when a product's price is changed:
+
+```json
+{
+  "productId": 100,
+  "newPrice": 1799.99,
+  "timestamp": "2025-03-21T14:22:00Z"
+}
 ```
 
-## Database Schema
+---
 
-```sql
-CREATE TABLE products (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    stock_quantity INTEGER NOT NULL,
-    category VARCHAR(100),
-    sku VARCHAR(50) UNIQUE,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-```
+## ⚙️ Configuration Notes
 
-## Configuration
-
-### Application Properties
-
+- MinIO endpoint and bucket name are configured via `application.yml`:
 ```yaml
-server:
-  port: 8081
-
-spring:
-  application:
-    name: product-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/kasyus_products
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+minio:
+  url: http://localhost:9000
+  bucket-name: kasyus-products
 ```
 
-## Running Locally
+- Kafka topic used: `product-price-updated`
 
-1. Ensure PostgreSQL is running
-2. Create database:
-```sql
-CREATE DATABASE kasyus_products;
-```
+---
 
-3. Start the application:
+## 🧪 Running Locally
+
+### Prerequisites
+
+- Java 21
+- Maven
+- MinIO
+- Kafka (optional but recommended)
+
 ```bash
 mvn spring-boot:run
 ```
-
-## Docker Support
-
-Build the image:
-```bash
-docker build -t kasyus/product-service .
-```
-
-Run the container:
-```bash
-docker run -p 8081:8081 kasyus/product-service
-```
-
-## Testing
-
-Run tests:
-```bash
-mvn test
-```
-
-## Monitoring
-
-The service exposes the following actuator endpoints:
-- Health: `/actuator/health`
-- Info: `/actuator/info`
-- Metrics: `/actuator/metrics`
-
-## Additional Features
-
-- Low stock alerts
-- Price history tracking
-- Category-based search
-- Bulk import/export support 
