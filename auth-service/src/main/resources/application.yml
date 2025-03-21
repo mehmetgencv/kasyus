@@ -73,6 +73,14 @@ app:
     processing-interval: 5000 # 5 seconds
     batch-size: 100
 
+  bootstrap:
+    admin:
+      email: admin@kasyus.com
+      password: admin1234
+      first-name: System
+      last-name: Admin
+      role: ADMIN
+
 logging:
   level:
     com:
