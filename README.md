@@ -13,15 +13,27 @@ Kasyus is named after **Kasyus (Kassius) Mountain**, also known as **Kel Dağı*
 This project implements a microservices-based e-commerce system with the following services:
 For detailed setup and configuration of each service, please refer to their respective README files:
 
-- **[API Gateway (Port: 8072)](api-gateway/README.md)**: Central entry point for client requests, handling routing and cross-cutting concerns
-- **[Discovery Service (Port: 8761)](discovery-service/README.md)**: Service registry and discovery using Netflix Eureka
-- **[Auth Service (Port: 8084)](auth-service/README.md)**: Handles authentication and user management
-- **[User Service (Port: 8085)](user-service/README.md)**: Manages user profiles and accounts
-- **[Order Service (Port: 8083)](order-service/README.md)**: Order processing and management
-- **[Product Service (Port: 8081)](product-service/README.md)**: Product catalog and inventory management
-- **[Message Service (Port: 8089)](message/README.md)**: Handles messaging and notifications
-- **MinIO (Port: 9001)**: Object storage service for handling media assets
-- **Kafka**: Distributed event streaming platform for real-time messaging
+| Service Name           | Port   | Description                                      | Status           |
+|------------------------|--------|--------------------------------------------------|------------------|
+| [**API Gateway**](api-gateway/README.md)        | 8072   | Routes and secures client requests               | ✅ Running        |
+| [**Discovery Service**](discovery-service/README.md)  | 8761   | Service registry using Eureka                    | ✅ Running        |
+| [**Auth Service**](auth-service/README.md)       | 8084   | Handles authentication and token management      | ✅ Running        |
+| [**User Service**](user-service/README.md)       | 8085   | Manages user profiles, addresses, and payments   | ✅ Running        |
+| [**Product Service**](product-service/README.md) | 8081   | Product catalog, pricing, and image management   | ✅ Running        |
+| [**Cart Service**](cart-service/README.md)       | 8087   | Manages user shopping carts                      | ✅ Running        |
+| [**Order Service**](order-service/README.md)     | 8083   | Handles order creation and tracking              | 🚧 In Development |
+| [**Message Service**](message/README.md)         | 8089   | Will be refactored into Notification Service     | 🔄 Refactoring    |
+| **Inventory Service**  | TBD    | Stock tracking and warehouse sync                | 🔜 Planned        |
+| **Payment Service**    | TBD    | Processes user payments                          | 🔜 Planned        |
+| **Reviews & Ratings**  | TBD    | Customer feedback on products                    | 🔜 Planned        |
+| **MinIO**              | 9001   | Object storage for media assets                  | ✅ Running        |
+| **Kafka**              | N/A    | Event streaming platform                         | ✅ Running        |
+
+### Legend:
+- ✅ **Running** – Fully functional and deployed
+- 🚧 **In Development** – Work in progress
+- 🔄 **Refactoring** – Being restructured or renamed
+- 🔜 **Planned** – Will be implemented soon
 
 ## Architecture
 
