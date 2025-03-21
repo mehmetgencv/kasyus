@@ -37,6 +37,31 @@ spring:
       host: localhost
       port: 6379
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 app:
   security:
     jwt:
@@ -53,6 +78,8 @@ logging:
     com:
       kasyus:
         authservice: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 
 eureka:
   instance:

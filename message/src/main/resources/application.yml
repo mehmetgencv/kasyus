@@ -2,19 +2,33 @@ spring:
   application:
     name: message
 
-  cloud:
-    function:
-      definition: email|sms
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
 
-    stream:
-      bindings:
-        emailsms-in-0:
-          destination: send-communication
-          group: ${spring.application.name}
-        emailsms-out-0:
-          destination: communication-sent
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
 server:
-  port: 9010
+  port: 8089
 
 info:
   app:
@@ -27,3 +41,5 @@ logging:
     com:
       kasyus:
         message: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"

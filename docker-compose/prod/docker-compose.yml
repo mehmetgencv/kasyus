@@ -407,11 +407,11 @@ services:
       - |
         /run.sh
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ../observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1" ]
       interval: 20s
       timeout: 5s
       retries: 20

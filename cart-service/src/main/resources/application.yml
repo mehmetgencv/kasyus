@@ -66,9 +66,9 @@ logging:
     com:
       kasyus:
         cartservice: DEBUG
-
   pattern:
     level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
 eureka:
   instance:
     prefer-ip-address: true
