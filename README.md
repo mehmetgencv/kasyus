@@ -3,23 +3,23 @@
 </div>
 
 # Kasyus E-Commerce Platform
-
 A modern, scalable e-commerce platform built with microservices architecture using Spring Cloud and Docker.
 
 ## What is Kasyus?
 Kasyus is named after **Kasyus (Kassius) Mountain**, also known as **Kel Dağı**, a dormant volcanic mountain in Hatay, Turkey. The mountain has historical significance and is known for its rich biodiversity and ancient ruins, including the St. Barlaam Monastery from the Roman era.
 
-## Overview
+## Overview and Service Documentation
 
 This project implements a microservices-based e-commerce system with the following services:
+For detailed setup and configuration of each service, please refer to their respective README files:
 
-- **API Gateway (Port: 8072)**: Central entry point for client requests, handling routing and cross-cutting concerns
-- **Discovery Service (Port: 8761)**: Service registry and discovery using Netflix Eureka
-- **Auth Service (Port: 8088)**: Handles authentication and user management
-- **User Service (Port: 8082)**: Manages user profiles and accounts
-- **Order Service (Port: 8083)**: Order processing and management
-- **Product Service (Port: 8081)**: Product catalog and inventory management
-- **Message Service (Port: 9010)**: Handles messaging and notifications
+- **[API Gateway (Port: 8072)](api-gateway/README.md)**: Central entry point for client requests, handling routing and cross-cutting concerns
+- **[Discovery Service (Port: 8761)](discovery-service/README.md)**: Service registry and discovery using Netflix Eureka
+- **[Auth Service (Port: 8084)](auth-service/README.md)**: Handles authentication and user management
+- **[User Service (Port: 8085)](user-service/README.md)**: Manages user profiles and accounts
+- **[Order Service (Port: 8083)](order-service/README.md)**: Order processing and management
+- **[Product Service (Port: 8081)](product-service/README.md)**: Product catalog and inventory management
+- **[Message Service (Port: 8089)](message/README.md)**: Handles messaging and notifications
 - **MinIO (Port: 9001)**: Object storage service for handling media assets
 - **Kafka**: Distributed event streaming platform for real-time messaging
 
@@ -27,7 +27,7 @@ This project implements a microservices-based e-commerce system with the followi
 
 
 <p align="center">
-  <img src="public/diagram/KasyusArchitectureDiagram.png" width="400">
+  <img src="public/diagram/KasyusArchitectureDiagram.png">
 </p>
 
 
@@ -145,26 +145,31 @@ curl -X GET http://localhost:8072/api/v1/products \
 The PostgreSQL instance is configured with:
 - Username: kasyus
 - Password: kasyus123
-- Databases: kasyus_products, kasyus_orders
+- [Databases](docker-compose/prod/init-scripts/init-multiple-dbs.sql).: kasyus_products, kasyus_orders ...
 
-## Monitoring
+## 🚀 Monitoring
 
-Each service exposes the following actuator endpoints:
-- Health: `/actuator/health`
-- Info: `/actuator/info`
-- Metrics: `/actuator/metrics`
+<div align="center">
+  <img src="docker-compose/observability/assets/alloy-logo.png" alt="Alloy Logo" width="50">
+  <img src="docker-compose/observability/assets/grafana-logo.png" alt="Grafana Logo" width="50">
+  <img src="docker-compose/observability/assets/grafana-loki-logo.png" alt="Loki Logo" width="50">
+  <img src="docker-compose/observability/assets/grafana-tempo.svg" alt="Tempo Logo" width="50">
+  <img src="docker-compose/observability/assets/prometheus-logo.png" alt="Prometheus Logo" width="50">
+  <img src="docker-compose/observability/assets/OpenTelemetry-logo.png" alt="OpenTelemetry Logo" width="50">
+  <img src="docker-compose/observability/assets/micrometerio-logo.svg" alt="Micrometer Logo" width="50">
+</div>
 
-## Service Documentation
+### 🔍 Observability Stack Overview
+This project utilizes a comprehensive observability stack, integrating **Grafana, Prometheus, Loki, Tempo, Alloy, OpenTelemetry,** and **Micrometer.io** to monitor application performance, logs, and distributed traces.
 
-For detailed setup and configuration of each service, please refer to their respective README files:
+Each service exposes **health, metrics, and system information** via **Spring Boot Actuator** endpoints:
 
-- [API Gateway](api-gateway/README.md)
-- [Discovery Service](discovery-service/README.md)
-- [Auth Service](auth-service/README.md)
-- [User Service](user-service/README.md)
-- [Order Service](order-service/README.md)
-- [Product Service](product-service/README.md)
-- [Message Service](message/README.md)
+- ✅ **Health Check** → [`/actuator/health`](#) – Shows service health status.
+- ℹ️ **Application Info** → [`/actuator/info`](#) – Displays metadata about the service.
+- 📊 **Metrics** → [`/actuator/metrics`](#) – Provides detailed application performance metrics.
+
+📌 **For a detailed observability setup and usage guide, check the full documentation:**  
+➡️ [**Detailed Monitoring Documentation**](docker-compose/observability/README.md)
 
 ## License
 
