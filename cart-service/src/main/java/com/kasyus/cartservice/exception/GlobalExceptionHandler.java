@@ -23,8 +23,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     public GlobalExceptionHandler() {
     }
-    
-
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
@@ -35,11 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(CartNotFoundException.class)
     public ResponseEntity<Object> handleCategoryNotFoundException(CartNotFoundException ex, WebRequest request) {
-        String message = ex.getMessage();
-        String description = request.getDescription(false);
-        GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
-        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
-        return new ResponseEntity<>(restResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(buildErrorResponse(ex, request), HttpStatus.NOT_FOUND);
     }
 
 
@@ -56,26 +50,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        RestResponse<Void> restResponse = RestResponse.of(null, errorMessage);
+        RestResponse<Void> restResponse = RestResponse.error(null, errorMessage);
         return new ResponseEntity<>(restResponse, HttpStatus.BAD_REQUEST);
     }
 
 
     @ExceptionHandler(RuntimeException.class)
     public final ResponseEntity<Object> handleRunTimeExceptions(RuntimeException ex, WebRequest request){
-        String message = ex.getMessage();
-        String description = request.getDescription(false);
-        GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
-        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
-        return new ResponseEntity<>(restResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(buildErrorResponse(ex, request), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex, WebRequest request) {
+        return new ResponseEntity<>(buildErrorResponse(ex, request), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private RestResponse<GeneralErrorMessages> buildErrorResponse(Exception ex, WebRequest request) {
         String message = ex.getMessage();
         String description = request.getDescription(false);
         GeneralErrorMessages generalErrorMessages = new GeneralErrorMessages(LocalDateTime.now(), message, description);
-        RestResponse<GeneralErrorMessages> restResponse = RestResponse.error(generalErrorMessages, message);
-        return new ResponseEntity<>(restResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return RestResponse.error(generalErrorMessages, message);
     }
+
 }
