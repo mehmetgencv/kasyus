@@ -52,7 +52,7 @@ services:
 #    depends_on:
 #      discovery-service:
 #        condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -81,7 +81,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -110,7 +110,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -142,7 +142,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -172,7 +172,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -204,7 +204,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     extends:
       file: common-config.yml
       service: microservice-eureka-config
